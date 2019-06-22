@@ -36,13 +36,9 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
-data/
-data/droids.dat
-data/teams.dat
-data/map.dat
-data/droids
-data/teams
-data/map
+
+# Distribution files
+dist/
 
 # TypeScript v1 declaration files
 typings/
