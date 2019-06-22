@@ -1,0 +1,50 @@
+#overlay{
+    overflow-y: scroll;
+    z-index: 2;
+}
+main{
+    align-items: stretch;
+}
+.interface{
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+.map-scroller{
+    border-radius: 5px 0 0 0;
+    width: 3cm;
+    height: 2.5cm;
+}
+.soft-button{
+    border: 1px white solid;
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    width: 1.5cm;
+    height: 1.5cm;
+    text-align: center;
+}
+.menu-display{
+    display: flex;
+    flex-wrap: wrap;
+
+}
+.menu-display:nth-child(2n){
+    background-color: #333;
+}
+.menu-display:nth-child(2n - 1){
+    background-color: #444;
+}
+.menu-item{
+    flex-basis: 8cm;
+    height: 1.5cm;
+}
+.chat-mobile{
+    align-self: flex-end;
+}

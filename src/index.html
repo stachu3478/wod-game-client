@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>
+			World of droids online
+		</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, maximum-scale=1">
+		<link rel="stylesheet" href="styles/style.css">
+		<link rel="stylesheet" media="screen and (min-width: 15cm) and (min-height: 15cm)" href="styles/style-desktop.css">
+		<link rel="stylesheet" media="screen and (max-width: 15cm), (max-height: 15cm)" href="styles/style-mobile.css">
+	</head>
+	<body>
+		<canvas></canvas>
+
+		<section class="side">
+			<aside class="warning" hidden>
+				<div>
+					<img src="tiles/radiation.svg" alt="">
+					<span></span>
+					<img src="tiles/radiation.svg" alt="">
+				</div>
+			</aside>
+			<div id=chat hidden>
+				<div class="messages">
+					<ul class='msgs scrollable'>
+
+					</ul>
+					<div class="scrollbar">
+						<div class="scrollbar-handle"></div>
+					</div>
+				</div>
+				<label for="chat_input">
+					<input id=chat_input type=text placeholder="Enter to chat..." spellcheck="false">
+				</label>
+			</div>
+		</section>
+
+		<section id=overlay>
+			<main>
+				<noscript>
+					<h1>
+						Enable javascript in your browser in order your game to work!
+					</h1>
+				</noscript>
+				<div id=login class="container">
+					<label class="top-label" for="username">
+						<input type=text placeholder="Nickname..." id=username>
+						<button class="left-thick">Play</button>
+						<button class="login-button">Login</button>
+					</label>
+					<input type=hidden placeholder="Password" id=password>
+					<h6 id=noticeArea></h6>
+					<section>
+						<h4>Settings</h4>
+						<label for="chat-on">
+							<input type="checkbox" id="chat-on" checked>Chat
+						</label>
+					</section>
+				</div>
+				<div class="secondary-window container">
+
+				</div>
+				<form id=register class="container" hidden>
+					<input type=text placeholder="Nickname..." id=username_reg><br>
+					<input type=password placeholder="Password" id=password_reg1><br>
+					<input type=password placeholder="Confirm password" id=password_reg2><br>
+					<input type=text placeholder="E-mail" id=email><br>
+					<input type=checkbox id=agree><a>Terms of use</a>(xd)<br>
+					<button id=regbtn onclick="register()" disabled>Register</button>
+					<button id=backregbtn onclick='backReg()'>Back</button>
+					<h6 id=rnoticeArea></h6><br>
+				</form>
+			</main>
+			<footer>
+				<div>
+					World of Droids Alpha 1.0 (Client build 1)
+				</div>
+				<div>
+					Made by &copy; stachu3478.
+				</div>
+			</footer>
+		</section>
+
+	</body>
+</html>
