@@ -1,4 +1,4 @@
-const UpdateLog = (function() {
+export const UpdateLog = (function() {
     let index = 0;
     const logs = [
         `<dl>
@@ -118,7 +118,7 @@ const UpdateLog = (function() {
     }
 })();
 
-const SecondaryWindow = (function() {
+export const SecondaryWindow = (function() {
     const controls = `
         Select droids - Hold Mouse Left and drag an area
         Select single droid - click on
@@ -163,5 +163,3 @@ const SecondaryWindow = (function() {
         else element.children[1].innerText = controls;
     }
 })();
-
-SecondaryWindow(document.getElementsByClassName("secondary-window")[0]);

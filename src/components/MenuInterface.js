@@ -1,0 +1,5 @@
+class MenuInterface {
+    constructor (elements) {
+        
+    }
+}

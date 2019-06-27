@@ -26,7 +26,12 @@ let n = 0;
 function handleScrollBarUpdate(evt) {
     updateScrollBar(this.scrollable, this.scrollBar);
 }
-for (let k of scrollable) {
-    k.onmousewheel = handleScroll.bind(scrollbars[n]);
-    k.onscroll = handleScrollBarUpdate.bind({scrollable: k, scrollBar: scrollbars[n++]});
+
+const iScroll = () => {
+    for (let k of scrollable) {
+        k.onmousewheel = handleScroll.bind(scrollbars[n]);
+        k.onscroll = handleScrollBarUpdate.bind({scrollable: k, scrollBar: scrollbars[n++]});
+    }
 }
+
+export default iScroll

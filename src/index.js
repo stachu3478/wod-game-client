@@ -1,28 +1,10 @@
-import './App'
-import './components/SecondaryWindow'
-import './components/iScroll'
+import App from './App'
+import { SecondaryWindow } from './components/SecondaryWindow'
+import iScroll from './components/iScroll'
 
-/*function component() {
-    const element = document.createElement('div');
-    const span = document.createElement('span')
-    const button = document.createElement('button')
-    button.innerText = 'Click me to connect'
-    button.onclick = evt => {
-        span.innerText += '\nUpdating interface...';
-        import('./client').then(mod => {
-            const Client = mod.default;
-            const client = new Client('http://wodgame.herokuapp.com', span)
-        })
-    }
-
-    element.appendChild(span)
-    element.appendChild(button)
-  
-    span.innerText = ['Hello', 'webpack','!'].join(' ');
-    return element;
-}*/
-  
-// document.body.appendChild(component());
+App();
+SecondaryWindow(document.getElementsByClassName("secondary-window")[0]);
+iScroll();
 
 if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
     window.addEventListener('load', () => {

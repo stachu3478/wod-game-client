@@ -1,121 +1,15 @@
-import io from 'socket.io-client'
+import socket from './components/client'
 
-const socket = new io('http://wodgame.herokuapp.com');
+import ElementSwitcher from './components/ElementSwitcher'
+import Chunks from './components/Chunks'
 
-// chunks.js
-const chunkSize = 32;
+import LoadableImage from './components/LoadableImage'
 
-function getXY (x, y) {
-    return Math.cos(x / (7 + 3 * Math.cos(x / 17))) * (11 + 5 * Math.cos((x > 0 ? x : 0.5 - x) / 13)) + Math.sin(y / (7 + 3 * Math.sin(y / 17))) * (11 + 5 * Math.cos(y / 13));
-}
+import { getXY } from './components/miscs'
+import { tileSize } from './components/configVars'
+import Chat from './components/Chat';
 
-const chunkCanvas = document.createElement("canvas");
-chunkCanvas.width = 1024;
-chunkCanvas.height = 1024;
-const cctx = chunkCanvas.getContext("2d");
-
-const map = {
-    getXY: getXY,
-
-    data: {
-        chunks: {},
-        gens: {},
-    },
-    seed: 0,
-    init: function() {
-        this.data = {
-            chunks: {},
-            gens: {},
-        };
-        for (let p of rowMan) this.genChunk(p[0], p[1]);
-    },
-    setChunk: function(x, y) {
-        let c = {t: [],g: false,c: false};
-        for (let i = 0; i < chunkSize; i++) {
-            c.t[i] = [];
-            for (let j = 0; j < chunkSize; j++) {
-                c.t[i][j] = {i: 7}; // unknown block
-            }
-        }
-        this.data.chunks[x + "," + y] = c;
-        console.log("Chunk " + x + " " + y + " set");
-        return c;
-    },
-    prerenderChunk: function (c, x, y) {
-        if (!c) return false;
-        const t = c.t;
-        const deg90 = Math.PI / 2;
-        for (let i = 0; i < chunkSize; i++) {
-            for (let j = 0; j < chunkSize; j++) {
-                const px = x * chunkSize + i, py = y * chunkSize + j;
-                const base = getXY(px, py) * 32;
-                const directionMarker = Math.floor(base % 4);
-                const scaleMarker = Math.floor((base % 1) * 4);
-                const sx = scaleMarker % 2 === 0 ? 1 : -1, sy = Math.floor(scaleMarker / 2) === 0 ? 1 : -1;
-                const block = t[i][j];
-                cctx.save();
-                cctx.translate(i * tileSize + 16, j * tileSize + 16);
-                cctx.rotate(directionMarker * deg90);
-                cctx.scale(sx, sy);
-                cctx.drawImage(tiles.tiles[block.i] || tiles.tiles[2], -16, -16);
-                cctx.restore();
-            }
-        }
-        c.chunkImage = new Image();
-        c.chunkImage.src = chunkCanvas.toDataURL("image/png");
-        cctx.clearRect(0, 0, 1024, 1024);
-    },
-    genChunk: function(x, y) {
-        var c,idx,f;
-        if(f = !this.data.chunks[idx = x + ',' + y]){
-            c = this.setChunk(x,y);
-        }else{
-            c = this.data.chunks[idx];
-        }
-        c.g = true;
-        for(var i = 0; i < chunkSize; i++){
-            for(var j = 0; j < chunkSize; j++){
-                c.t[i][j] = {i: Math.abs(getXY(x * chunkSize + i, y * chunkSize + j) % 1) > 0.0625 ? 0 : 1};
-            }
-        }
-        c.g = true;
-        this.prerenderChunk(c, x, y);
-    },
-    getBlock:  function(x, y, g) {
-        var px, py, idx;
-        if(!(this.data.chunks[idx = (px = Math.floor(x / chunkSize)) + "," + (py = Math.floor(y / chunkSize))] && this.data.chunks[idx].g) ){
-            if (g) {
-                this.genChunk(px,py);
-            } else {
-                return null;
-            }
-        }
-        var rx = x % chunkSize, ry = y % chunkSize;
-        return this.data.chunks[idx].t[(rx < 0 ? rx + chunkSize : rx)][(ry < 0 ? ry + chunkSize : ry)];
-    },
-    setBlock: function(x, y, id){
-        var px,py,idx,b;
-        //if(!(b = this.data.chunks[idx = (px = Math.floor(x / chunkSize)) + "," + (py = Math.floor(y / chunkSize))]) )
-        //    b = this.setChunk(px,py);
-        b = this.data.chunks[idx = (px = Math.floor(x / chunkSize)) + "," + (py = Math.floor(y / chunkSize))];
-        var rx = Math.floor(x % chunkSize), ry = Math.floor(y % chunkSize),bx = (rx < 0 ? rx + chunkSize : rx),by = (ry < 0 ? ry + chunkSize : ry);
-        try{
-            b.t[bx][by] = {i: id};}catch(err){console.log(err); console.log(bx + ", " + by)}
-    },
-    setBlockU: function(x, y, data, g){
-        if (data)
-            if (isNaN(data.x) || isNaN(data.y) || data.x !== x || data.y !== y) throw new Error('Invalid map position assigment');
-        var b = this.getBlock(x, y);
-        if(b)b.u = data;
-        return data;
-    },
-    exists: function(x, y) {
-        return this.data.chunks[this.getChunk(x, y)] !== undefined
-    },
-    getChunk: function(x, y){
-        return (Math.floor(x / chunkSize)) + "," + (Math.floor(y / chunkSize))
-    }
-};
+const App = () => {
 
 // misc.js
 function dist(x12,y12){
@@ -124,10 +18,6 @@ function dist(x12,y12){
 
 function isPointInBox(bx, by, width, height, x, y){
     return x > bx && x < bx + width && y > by && y < by + height;
-}
-
-function pathTo(x1,y1,x2,y2){
-    return false; // server creates paths instead
 }
 
 const spec = [
@@ -248,29 +138,6 @@ window.tiles = new function() {
         "rgb(32,224,96)",
     ];
 
-    const LoadableImage = (function() {
-        let loading = 0;
-        let maxLoading = 0;
-        function incl() {
-            if(++loading === maxLoading) {
-                init();
-                let interVal = setInterval(function() {
-                    if (preinit) {
-                        preinit();
-                        clearInterval(interVal);
-                    }
-                }, 100);
-            }
-        }
-        return function constructor(src) {
-            let img = new Image();
-            img.onload = incl;
-            img.src = src;
-            maxLoading++;
-            return img;
-        }
-    })();
-
     const droidTypes = 14;
 
     let pat1;
@@ -308,6 +175,12 @@ window.tiles = new function() {
     }
 
     imgArray.push(new LoadableImage("tiles/arrows.png"));
+
+    LoadableImage.fetch()
+    .then(() => {
+        init();
+        preinit();
+    })
 
     this.drawImg = function(i, x, y) {
         return ctx.drawImage(imgArray[i], x, y);
@@ -1022,12 +895,17 @@ window.CVGInterface = new function(){
 }();
 
 // main.js
-var msgs = document.getElementsByClassName("msgs")[0];
-var input = document.getElementById("chat_input");
-const chatElement = document.getElementById('chat');
 var overlay = document.getElementById("overlay");
-var lpanel = document.getElementById("login");
-var rpanel = document.getElementById("register");
+
+const lpanel = document.getElementById("login");
+const rpanel = document.getElementById("register");
+const userPanel = document.getElementById("user");
+const menuInterface = new ElementSwitcher([
+    lpanel,
+    rpanel,
+    userPanel
+])
+
 const sidePanel = document.getElementsByClassName('side')[0];
 const radiationIndicator = document.getElementsByClassName('warning')[0];
 can.width = window.innerWidth;
@@ -1068,25 +946,6 @@ window.onresize = function() {
 	notifyRadius = Math.min(CW, CH) >>> 2;
 	render(map, scrollX, scrollY, menu.style.display === 'none');
 };
-var chatting = false;
-input.onfocus = function() {
-	chatting = true;
-};
-input.onblur = function() {
-	chatting = false;
-};
-input.onkeypress = function(evt) {
-	if(evt.key === "Enter"){
-		var val = input.value;
-		if(val[0] === cmdPrefix){
-			chat.sendCmd(val.slice(1));
-		}else{
-			chat.send(val);
-		}
-		input.value = "";
-	}
-};
-const tileSize = 32;
 
 const pressed = {
     a: false,
@@ -1137,31 +996,31 @@ function findActorDroids(selected, quantity) {
 
 document.body.onkeydown = function(evt) {
 	pressed[evt.key] = true;
-	if(menu.style.display !== 'none' || chatting)return;
+	if (menu.style.display !== 'none' || chat.chatting) return;
 	switch(evt.key){
-	case " ": case "Spacebar":{
-		if(marking){
+	case " ": case "Spacebar": {
+		if (marking) {
 			marking = false;
-		}else if(selected.length > 0){
+		}else if (selected.length > 0) {
 			selected = [];
-			if (!chatting) evt.preventDefault();
+			if (!chat.chatting) evt.preventDefault();
 		}else{
 			selectAll();
 		}
 	}break;
-	case "m":{
+	case "m": {
 		mapEnabled = !mapEnabled;
 	}break;
 		case "c" : {
 			const chatOn = document.getElementById("chat-on");
 			chatOn.checked = !chatOn.checked;
-			chatElement.display = chatOn.checked ? 'flex' : 'none';
+            chat.setOn(chatOn.checked)
 		}break;
 		case "x" : {
 			if (selected.length <= 10 || confirm(`Are you sure to remove ${selected.length} units?`)) socket.emit('delete', selected);
 		}break;
         case 'Enter': {
-            if (!chatting) input.focus();
+            if (!chat.chatting) chat.input.focus();
         }break;
 		case 'Up': {
 			pressed.ArrowUp = true;
@@ -1178,16 +1037,9 @@ document.body.onkeydown = function(evt) {
 	}
 };
 
-input.onkeydown = function(evt) {
-    if (chatting) {
-        if (evt.key in {'ArrowUp': 1, 'Up': 1}) chat.up(evt);
-        if (evt.key in {'ArrowDown': 1, 'Down': 1}) chat.down(evt);
-    }
-};
-
 document.body.onkeyup = function(evt){
 	pressed[evt.key] = false;
-	if(menu.style.display !== 'none' || chatting)return;
+	if(menu.style.display !== 'none' || chat.chatting)return;
 	switch(evt.key){
 		case "Spacebar":{
 			pressed[' '] = false;
@@ -1217,19 +1069,12 @@ function checkp() {
 document.getElementById('password_reg1').addEventListener('input', checkp);
 document.getElementById('password_reg2').addEventListener('input', checkp);
 document.getElementById('agree').addEventListener('input', checkp);
-function register(){
-	var ob = {
-		u: document.getElementById("username_reg").value,
-		p: document.getElementById("password_reg1").value,
-		e: document.getElementById("email").value,
-	};
-	socket.emit("register",ob);
-}
+
 function backReg() {
-	lpanel.hidden = false;
-	rpanel.hidden = true;
-	overlay.style.display = "none";
+	menuInterface.switchTo(0);
+    overlay.style.display = "none";
 }
+document.getElementById('backregbtn').addEventListener('click', backReg);
 
 var dirsbytype = {
 	
@@ -1283,7 +1128,6 @@ function attack(d1,d2){
 			d2.target = d1.id;
 			d2.targetX = d1.x;
 			d2.targetY = d1.y;
-			d2.path = pathTo(d2.x,d2.y,d1.x,d1.y);
 			moving.push(d2);
 		}
 		d1.r = 4;
@@ -1382,130 +1226,39 @@ function Droid(x,y,team,type = 0){
 	this.team = team;
 	this.dmg = false;
 	this.dir = 0;
-	//this.wcd = 0;//walking cooldown
-		this.type = 0;
-	//map.setBlockU(this.x, this.y, this);
-}
-function Mapp() {
-	map.init();
+    this.type = 0;
 }
 
+let map;
 function preinit() {
-	can.width--;
+	can.width--; // somehow this functions make rendering on canvas few times faster
 	can.width++;
-	Mapp();
+	map = new Chunks(getXY, tiles.tiles)
 	for (let i = 0;i < 10;i++) {
-		do{
-			var x = 45 + Math.round(Math.random() * 10);
-			var y = 45 + Math.round(Math.random() * 10);
-			var done = false;
-			var block = map.getBlock(x, y, true);
+        let done = false
+		do {
+			const x = 45 + Math.round(Math.random() * 10);
+			const y = 45 + Math.round(Math.random() * 10);
+			const block = map.getBlock(x, y, true);
 			if ((block.i === 0) && (block.u == null)) {
 				done = true;
-				droids.push(new Droid(x,y,0));
+				droids.push(new Droid(x, y,0));
 			}
 		} while (!done);
 	}
 	myTeam = 0;
 	teams = [{img: tiles.prepareDroidTiles(Math.random() * 255, Math.random() * 255,Math.random() * 255), temp: false}];
-	requestAnimationFrame(() => render(map, scrollX, scrollY, true)); // draw that background
+	render(map, scrollX, scrollY, true); // draw that background
 }
-function red(str) {//just span with red color
+function red(str) { // just span with red color
 	return "<span style='color: red'>" + str +  "</span>";
 }
 
-const cmdPrefix = "/";
-const chat = {
-	
-	history: [],
-	historyPos: 0,
-    hiCache: "",
-	cssClasses: [
-		
-		"chat_guest",
-		"chat_member",
-		"chat_admin",
-	],
-	prefixes: [
-		
-		"[G]",
-		"[M]",
-		"[HA]",
-	],
-	social: ['msg', 'private', 'bprivate'],
-    up: function(evt) {
-	    if (this.historyPos > 0) {
-	        if (this.history.length === this.historyPos) this.hiCache = input.value || "";
-	        input.value = this.history[--this.historyPos];
-	        evt.preventDefault()
-        }
-    },
-    down: function(evt) {
-	    if (this.history.length >= this.historyPos) {
-	        if (this.history.length === this.historyPos) {
-	            input.value = this.hiCache;
-	            this.historyPos++;
-	        } else input.value = this.history[++this.historyPos];
-	        evt.preventDefault();
-        }
-    },
-	send: function(msg) {
-		
-		if (msg === '') return false;
-		const hl = this.history.length - 1;
-		if (this.history[hl] !== msg) {
-			this.history.push(msg);
-			this.historyPos = hl + 2;
-		} else this.historyPos = hl + 1;
-		input.blur();
-		return socket.emit("msg", msg);
-	},
-	sendCmd: function(msg) {
-		
-		const hl = this.history.length - 1;
-		const m = cmdPrefix + msg;
-		if( this.history[this.history.length] !== m) {
-			this.history.push(m);
-			this.historyPos = hl + 2;
-		} else this.historyPos = hl + 1;
-		input.blur();
-		return socket.emit("cmd", msg);
-	},
-	receive: function(evt) {
-		
-		const el = document.createElement("li");
-		const rId = evt.rank;
-		let username;
-		if (this.social.indexOf(evt.type) !== -1) username = teams[evt.id].u || 'Guest ' + ((Math.abs(map.getXY(evt.id, 0) % 1) * 100) << 0);
-		switch (evt.type) {
-            case "msg":{
-                el.className = chat.cssClasses[rId];
-                el.innerText = chat.prefixes[rId] + username + ": " + evt.msg;
-            }break;
-            case "server": {
-                el.className = "chat_server";
-                el.innerText = "[SERVER] " + evt.msg;
-            }break;
-            case "console": {
-                el.className = "chat_console";
-                el.innerText = evt.msg;
-            }break;
-            case "private": {
-                el.className = "chat_private";
-                el.innerText = "From: " + chat.prefixes[rId] + username + ": " + evt.msg;
-            }break;
-            case "bprivate": {
-                el.className = "chat_private";
-                el.innerText = "To: " + chat.prefixes[rId] + username + ": " + evt.msg;
-            }
-        }
-		msgs.appendChild(el);
-		msgs.scrollTop = msgs.scrollHeight;
-	},
-    clear: function(){
-        msgs.innerHTML = "";
-    },
-};
+const chat = new Chat(
+    document.getElementById('chat'),
+    document.getElementById('chat_input'),
+    document.getElementsByClassName('msgs')[0]
+)
 
 //io stuff
 var firstLogin = true;
@@ -1631,7 +1384,7 @@ socket.on("map",function(evt){
 			//console.log("why" + JSON.stringify(evt[0]));
 		});
 		socket.on("nd", function(evt) {
-			for(var i in evt){
+			for (var i in evt) {
 				var d = evt[i];
 				droids[d.id] = d;
 				map.setBlockU(d.x, d.y, d);
@@ -1647,7 +1400,6 @@ socket.on("map",function(evt){
 			}
 		});
 		firstLogin = false;
-		socket.on('msg', function(evt) {chat.receive(evt)});
 		socket.on('big_msg',function(evt) {
 			bigs.push({m: evt, t: 0});
 		});
@@ -1751,33 +1503,33 @@ function scrol(x, y){
 	my += scrollY - v2;
 }
 let prevClientLoad = 0;
-var loopFunc = function(){
+const loopFunc = function() {
 
 	const then = Date.now();
 	prevClientLoad = clientLoad;
 	clientLoad = 0;
 
-	if(!chatting){
+	if (!chat.chatting) {
 		let x = 0, y = 0;
-		if(pressed.w || pressed.ArrowUp){
+		if (pressed.w || pressed.ArrowUp) {
 			y = -8;
-		}else if(pressed.s || pressed.ArrowDown){
+		} else if (pressed.s || pressed.ArrowDown) {
 			y = 8;
 		}
-		if(pressed.d || pressed.ArrowRight){
+		if (pressed.d || pressed.ArrowRight) {
 			x = 8;
-		}else if(pressed.a || pressed.ArrowLeft){
+		} else if (pressed.a || pressed.ArrowLeft) {
 			x = -8;
 		}
-		scrol(x,y);
+		scrol(x, y);
 		valiScroll();
-		render(map, scrollX, scrollY)
-	}
+    }
+    
+    render(map, scrollX, scrollY)
 
 	clientLoad += Math.round((Date.now() - then) / 0.3);
 };
 let loop = 0;
-let menuOn = true;
 let highScores = [];
 let gameOn = false;
 function init() {
@@ -1855,7 +1607,6 @@ function init() {
 										moving.push(d);
 										d.isMoving = true;
 									}
-									d.path = pathTo(d.x, d.y, tmx, tmy);
 									d.targetX = tmx;
 									d.targetY = tmy;
 									if (attack) d.target = u.id;
@@ -1965,8 +1716,7 @@ function init() {
 	if(teams[myTeam].t) {
 		var registerButton = new CVGInterface.createCanvasButton(0, 0, 75, 20, 'Register');
 		registerButton.onclick = function() {
-			lpanel.display = 'none';
-			rpanel.hidden = false;
+			menuInterface.switchTo(1);
 			overlay.style.display = 'flex';
 			document.getElementById("username_reg").value = teams[myTeam].u;
 		}
@@ -1975,7 +1725,7 @@ function init() {
 	valiScroll();
 	loop = setInterval(loopFunc,30);
 	menuOn = false;
-	chatElement.display = !document.getElementById("chat-on").checked ? 'flex' : 'none';
+	chat.setOn(document.getElementById("chat-on").checked)
 	can.style.filter = 'none';
 
 
@@ -1995,8 +1745,12 @@ function deinit(){
 	sidePanel.onmousemove = null;
 	clearInterval(loop);
 	menuOn = true;
-	CVGCVGInterface.removeButton('Register');
+	CVGInterface.removeButton('Register');
 	selected = [];
 	can.style.filter = 'blur(2px)';
-	chatElement.display = 'none';
+	chat.off()
 }
+
+}
+
+export default App

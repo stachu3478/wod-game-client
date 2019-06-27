@@ -21,9 +21,9 @@
 					<img src="tiles/radiation.svg" alt="">
 				</div>
 			</aside>
-			<div id=chat hidden>
+			<div id="chat" class="hidden">
 				<div class="messages">
-					<ul class='msgs scrollable'>
+					<ul class="msgs scrollable">
 
 					</ul>
 					<div class="scrollbar">
@@ -31,26 +31,31 @@
 					</div>
 				</div>
 				<label for="chat_input">
-					<input id=chat_input type=text placeholder="Enter to chat..." spellcheck="false">
+					<input id="chat_input" type="text" placeholder="Enter to chat..." spellcheck="false">
 				</label>
 			</div>
 		</section>
 
-		<section id=overlay>
+		<section id="overlay">
+			<header>
+				<a rel="noopener noreferer" target="blank" href="https://github.com/stachu3478/wod-game-client">View code on GitHub</a>
+				<a rel="noopener noreferer" target="blank" href="https://github.com/stachu3478/wod-game-client/issues">Report a bug</a>
+			</header>
 			<main>
 				<noscript>
 					<h1>
 						Enable javascript in your browser in order your game to work!
 					</h1>
 				</noscript>
-				<div id=login class="container">
+
+				<div id="login" class="container">
 					<label class="top-label" for="username">
-						<input type=text placeholder="Nickname..." id=username>
+						<input type="text" placeholder="Nickname..." id="username">
 						<button class="left-thick">Play</button>
 						<button class="login-button">Login</button>
 					</label>
-					<input type=hidden placeholder="Password" id=password>
-					<h6 id=noticeArea></h6>
+					<input type="hidden" placeholder="Password" id="password">
+					<h6 id="noticeArea"></h6>
 					<section>
 						<h4>Settings</h4>
 						<label for="chat-on">
@@ -58,19 +63,32 @@
 						</label>
 					</section>
 				</div>
+
+				<div id="register" class="container hidden" hidden>
+					<h3>Register</h3>
+					<span>Keep your army when disconnected, gain XP, no unit limit.</span><br>
+					<input type="text" placeholder="Nickname..." id="username_reg"><br>
+					<input type="password" placeholder="Password" id="password_reg1"><br>
+					<input type="password" placeholder="Confirm password" id="password_reg2"><br>
+					<input type="text" placeholder="E-mail" id="email"><br>
+					<label>
+							<input type="checkbox" id="agree"><a>Terms of use (currently none)</a><br>
+					</label>
+					<button id="regbtn" disabled>Register</button>
+					<button id="backregbtn">Back</button>
+					<h6 id="rnoticeArea"></h6><br>
+				</div>
+
+				<div id="user" class="container hidden">
+					Logged in: <span></span><br>
+					XP:<div></div><br>
+					<button>Play</button>
+					<button>Logout</button>
+				</div>
+
 				<div class="secondary-window container">
 
 				</div>
-				<form id=register class="container" hidden>
-					<input type=text placeholder="Nickname..." id=username_reg><br>
-					<input type=password placeholder="Password" id=password_reg1><br>
-					<input type=password placeholder="Confirm password" id=password_reg2><br>
-					<input type=text placeholder="E-mail" id=email><br>
-					<input type=checkbox id=agree><a>Terms of use</a>(xd)<br>
-					<button id=regbtn onclick="register()" disabled>Register</button>
-					<button id=backregbtn onclick='backReg()'>Back</button>
-					<h6 id=rnoticeArea></h6><br>
-				</form>
 			</main>
 			<footer>
 				<div>

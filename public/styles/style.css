@@ -9,10 +9,19 @@
 
 @keyframes warning-loop2 {
 	0%{
-		 background-size: 150% 150%;
+		background-size: 150% 150%;
 	}
 	100%{
 		background-size: 100% 100%;
+	}
+}
+
+@keyframes upColor {
+	0%{
+		background-color: rgba(128, 128, 128, 0.5);
+	}
+	100%{
+		background-size: rgba(200, 200, 200, 0.5);
 	}
 }
 
@@ -36,6 +45,20 @@ button {
 canvas {
 	filter: blur(2px);
 }
+
+header {
+	text-align: right;
+	color: white;
+	background-color: black;
+	font-size: 12px;
+	display: flex;
+	flex-direction: row-reverse;
+}
+
+header a {
+	margin-right: 16px;
+}
+
 footer {
 	text-align: right;
 	color: white;
@@ -56,13 +79,18 @@ h6 {
 	margin: 2px;
 }
 nav button {
+	background-color: rgba(128, 128, 128, 0.2);
 	margin: 0;
 	border-radius: 0;
+	font-size: 18px;
+}
+nav button:hover {
+	animation: upColor 1s;
 }
 nav button.active {
-	background-color: transparent;
+	background-color: rgba(128, 128, 128, 0.5);
 	font-weight: bold;
-	font-size: 20px;
+	border-bottom: 1px lightgray solid;
 }
 #chat_input {
 	background-color: rgba(0, 0, 0, 0);
@@ -126,9 +154,17 @@ input{
 	border-radius: 3px 0 0 3px;
 	height: 32px;
 }
+
+#register {
+	display: flex;
+	flex-direction: column;
+}
+
 #register input{
 	flex: 1;
-	height: 32px;
+	padding: 4px;
+	border-radius: 3px;
+	margin: 0 8px 0 8px;
 }
 .container{
 	color: white;
@@ -136,6 +172,7 @@ input{
 	margin: 4px 8px;
 	border-radius: 3px;
 	font-family: sans-serif;
+	border: 1px gray solid;
 }
 #login{
 	display: flex;
@@ -317,4 +354,8 @@ ul{
 .log-navigation {
 	display: flex;
 	justify-content: space-between;
+}
+
+.hidden {
+	display: none !important;
 }
