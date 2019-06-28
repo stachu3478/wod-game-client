@@ -1530,6 +1530,7 @@ const loopFunc = function() {
 	clientLoad += Math.round((Date.now() - then) / 0.3);
 };
 let loop = 0;
+let menuOn = true;
 let highScores = [];
 let gameOn = false;
 function init() {
