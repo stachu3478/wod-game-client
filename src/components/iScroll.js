@@ -16,11 +16,13 @@ const handleScroll = function(evt) {
             target = k;
             break;
         }
+    if (target.classList.contains('chat-outer')) return
     let smooth = () => {
         target.scrollTop += evt.deltaY / 10;
-        this.children[0].style.animationDelay = '0s';
     };
+    this.children[0].classList.remove('scrollbar-handle')
     for (let i = 0; i < 10; i++) setTimeout(smooth, i * 20)
+    setTimeout(() => this.children[0].classList.add('scrollbar-handle'), 200)
 };
 let n = 0;
 function handleScrollBarUpdate(evt) {

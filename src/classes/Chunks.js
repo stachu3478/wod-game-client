@@ -1,4 +1,4 @@
-import { tileSize, chunkSize } from './configVars'
+import { tileSize, chunkSize } from '../components/configVars'
 
 const chunkCanvas = document.createElement("canvas");
 chunkCanvas.width = tileSize * chunkSize; // chunk size in px

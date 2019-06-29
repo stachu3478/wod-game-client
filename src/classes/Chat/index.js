@@ -1,6 +1,8 @@
-import socket from './client'
+import socket from '../../components/client'
 
-import { getXY } from './miscs'
+import { getXY } from '../../components/miscs'
+
+import './style.scss'
 
 /**
  * The event that represents chat message received from the server.
@@ -104,11 +106,13 @@ class Chat {
      */
     constructor (chatElement, chatInput, messageList) {
         /** The root chat element that is used to hide chat on request */
-        this.element = chatElement;
+        this.element = chatElement
+        this.element.classList.add('chat')
         /** The input used to type messages and commands */
         this.input = chatInput;
         /** The list that displays chat messages */
         this.msgList = messageList;
+        this.msgList.classList.add('chat-outer')
         
         /** The history that keeps all messages sent by the player */
         this.history = [];
@@ -169,12 +173,17 @@ class Chat {
 
     /** Event listener which call means that the player has started typing a message */
     inputFocus () {
-        this.chatting = true;
+        this.chatting = true
+        this.msgList.classList.remove('chat-outer')
+        this.msgList.classList.add('chat-typing')
     }
 
     /** Event listener which call means that the player has stopped typing a message */
     inputBlur () {
-        this.chatting = false;
+        this.chatting = false
+        this.msgList.classList.add('chat-outer')
+        this.msgList.classList.remove('chat-typing')
+        this.msgList.scrollTop = this.msgList.scrollHeight;
     }
 
     /** 

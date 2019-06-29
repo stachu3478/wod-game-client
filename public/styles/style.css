@@ -92,12 +92,6 @@ nav button.active {
 	font-weight: bold;
 	border-bottom: 1px lightgray solid;
 }
-#chat_input {
-	background-color: rgba(0, 0, 0, 0);
-	border-color: rgba(0, 0, 0, 0);
-	width: 100%;
-	color: white;
-}
 #overlay {
 	position: absolute;
 	top: 0;
@@ -188,18 +182,6 @@ h4{
 	display: flex;
 	justify-content: space-between;
 }
-#chat ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-	color: white;
-	opacity: 1; /* Firefox */
-}
-
-#chat :-ms-input-placeholder { /* Internet Explorer 10-11 */
-	color: white;
-}
-
-#chat ::-ms-input-placeholder { /* Microsoft Edge */
-	color: white;
-}
 ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
 	color: grey;
 	opacity: 1; /* Firefox */
@@ -224,7 +206,7 @@ button:disabled{
 
 .side {
 	display: flex;
-	flex-direction: column;
+	/*flex-direction: column;*/
 	background-color: transparent;
 	position: absolute;
 	top: 0;
@@ -234,26 +216,6 @@ button:disabled{
 	animation: warning-loop2 1s ease-out alternate infinite;
 	/*background-image: radial-gradient(rgba(0, 0, 0, 0) 75%, red 100%);*/
 	background-position: 50% 50%;
-}
-.chat_guest{
-	color: lightgray;
-}
-.chat_member{
-	color: white;
-}
-.chat_admin{
-	color: red;
-	font-weight: bold;
-}
-.chat_console{
-	color: rgb(255,255,128);
-}
-.chat_server{
-	color: #C6F;;
-	font-weight: bold;
-}
-.chat_private{
-	color: aliceblue;
 }
 
 /*.side.warning[hidden] {
@@ -298,58 +260,18 @@ button:disabled{
 	content: 'Your units are being affected by radiation!';
 }
 
-ul{
-	margin: 0;
-	padding-left: 15px;
-}
-#chat{
-	position: fixed;
-	left: 0;
-	bottom: 12px;
-	background-color: rgba(0, 0, 0, 0.3);
-	color: white;
-	padding: 3px;
-	font-family: Consolas, sans-serif;
-	font-size: 15px;
-	word-wrap: break-word;
-	display: flex;
-	flex-direction: column;
-	text-shadow: 1px 1px 4px black;
-}
-#chat:hover{
-	background-color: rgba(0, 0, 0, 0.6);
-	border: 1px grey solid;
-	padding: 2px;
-}
-#chat li {
-	background-color: rgba(0, 0, 0, 0.6);
-}
-.messages {
-	display: flex;
-	/*align-content: stretch;*/
-	width: 360px;
-	/*height: 360px;*/
-	max-height: 350px;
-	margin: 0;
-	padding: 0;
-	flex: 1;
-}
 .scrollbar {
 	background-color: rgba(0, 0, 0, 0);
 }
 .scrollbar-handle {
 	background-color: white;
-	animation: warning-loop 3s ease-out alternate;
+	animation: warning-loop 3s ease-out reverse;
+	animation-fill-mode: forwards;
 }
 .scrollbar, .scrollbar-handle {
 	width: 4px;
 	margin: 0;
 	padding: 0;
-}
-.msgs {
-	list-style: none;
-	overflow-y: hidden;
-	flex: 1;
 }
 .log-navigation {
 	display: flex;
@@ -358,4 +280,19 @@ ul{
 
 .hidden {
 	display: none !important;
+}
+
+/* TEMP */
+.highscores {
+	background-color: transparent;
+	align-self: flex-start;
+	margin-top: 64px;
+	display: flex;
+	flex-direction: row-reverse;
+	width: 100%;
+	color: white;
+}
+.highscores ul {
+	background-color: rgba(0, 0, 0, 0.5);
+	list-style: none;
 }

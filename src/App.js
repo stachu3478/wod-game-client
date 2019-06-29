@@ -1,21 +1,18 @@
 import socket from './components/client'
 
-import ElementSwitcher from './components/ElementSwitcher'
-import Chunks from './components/Chunks'
+import ElementSwitcher from './classes/ElementSwitcher'
+import Chunks from './classes/Chunks'
 
-import LoadableImage from './components/LoadableImage'
+import LoadableImage from './classes/LoadableImage'
 
 import { getXY } from './components/miscs'
 import { tileSize } from './components/configVars'
-import Chat from './components/Chat';
+import Chat from './classes/Chat'
+import Camera from './classes/Camera'
 
 const App = () => {
 
 // misc.js
-function dist(x12,y12){
-    return Math.sqrt(x12 * x12 + y12 * y12);
-}
-
 function isPointInBox(bx, by, width, height, x, y){
     return x > bx && x < bx + width && y > by && y < by + height;
 }
@@ -77,7 +74,7 @@ const spec = [
         hp: 1000,
     },
 ];
-var rowMan = [
+const rowMan = [
     [-1, -1],
     [0, -1],
     [1, -1],
@@ -89,7 +86,7 @@ var rowMan = [
     [1, 1],
 ];
 
-var patterns = [
+const patterns = [
     [
         0, 0, 0,
         0, 0, 0,
@@ -111,17 +108,26 @@ var patterns = [
         0, 0, 0,
     ],
 ];
-var canForm = function(x, y, type){
-    for(var i = 0; i < 9; i++){
-        var bi = map.getBlock(x + rowMan[i][0], y + rowMan[i][1]).i;
-        if(bi && patterns[type][i])return false
+const canForm = function(x, y, type) {
+    for (let i = 0; i < 9; i++) {
+        const bi = map.getBlock(x + rowMan[i][0], y + rowMan[i][1]).i;
+        if (bi && patterns[type][i]) return false
     }
     return true
 };
 
 // tiles.js
-var can = document.getElementsByTagName("canvas")[0];
-var ctx = can.getContext("2d");
+const can = document.getElementsByTagName("canvas")[0];
+const ctx = can.getContext("2d");
+const camera = new Camera(
+    can,
+    tileSize * 50 - CW >> 1,
+    tileSize * 50 - CH >> 1,
+    32 * -100,
+    32 * 100,
+    32 * -100,
+    32 * 100
+)
 
 Math.zmod = function (a, b) { return a - (Math.floor(a / b) * b)};
 
@@ -190,41 +196,41 @@ window.tiles = new function() {
         return ctx.drawImage(tiles[i], x, y);
     };
 
-    function drawLaser(x, y, tx, ty, l){
+    function drawLaser(x, y, tx, ty, cx, cy, l){
         ctx.beginPath();
         ctx.strokeStyle = 'pink';
         ctx.lineWidth = 5;
-        var ex = 0, ey = 0;
-        var rx = tx - x, ry = ty - y;
-        var lp = (10 - l) * 40;
-        var d = dist(rx, ry);
+        let ex = 0, ey = 0;
+        const rx = tx - x, ry = ty - y;
+        const lp = (10 - l) * 40;
+        const d = Math.hypot(rx, ry);
         if (l > 5) {
-            ctx.moveTo(x - scrollX, y - scrollY);
+            ctx.moveTo(x - cx, y - cy);
             if (d > lp) {
-                ctx.lineTo(x + rx * lp / d - scrollX, y + ry * lp / d - scrollY);
+                ctx.lineTo(x + rx * lp / d - cx, y + ry * lp / d - cy);
             } else {
-                ctx.lineTo(tx - scrollX, ty - scrollY);
+                ctx.lineTo(tx - cx, ty - cy);
                 for (var i = 0; i < 5; i++) {
                     ex += Math.random() * 4 - 2;
                     ey += Math.random() * 4 - 2;
-                    ctx.lineTo(tx + ex - scrollX, ty + ey - scrollY);
+                    ctx.lineTo(tx + ex - cx, ty + ey - cy);
                 }
             }
         } else {
-            var sp = (5 - l) * 40;
+            const sp = (5 - l) * 40;
             if (d > sp) {
-                ctx.moveTo(x + rx * sp / d - scrollX, y + ry * sp / d - scrollY);
+                ctx.moveTo(x + rx * sp / d - cx, y + ry * sp / d - cy);
             } else {
-                ctx.moveTo(tx - scrollX, ty - scrollY);
+                ctx.moveTo(tx - cx, ty - cy);
             }
             if (d > lp) {
-                ctx.lineTo(x + rx * lp / d - scrollX, y + ry * lp / d - scrollY);
+                ctx.lineTo(x + rx * lp / d - cx, y + ry * lp / d - cy);
             } else {
-                ctx.lineTo(tx - scrollX, ty - scrollY);
-                for (var i = 0; i < 5; i++) {
+                ctx.lineTo(tx - cx, ty - cy);
+                for (let i = 0; i < 5; i++) {
                     ex += Math.random() * 4 - 2;
                     ey += Math.random() * 4 - 2;
-                    ctx.lineTo(tx + ex - scrollX, ty + ey - scrollY);
+                    ctx.lineTo(tx + ex - cx, ty + ey - cy);
                 }
             }
         }
@@ -278,24 +284,24 @@ window.tiles = new function() {
         }
     }
 
-    this.drawEntity = function(now) {
+    this.drawEntity = function(now, cx, cy) {
         switch (this.id) {
             case 0:
-                drawLaser(this.x + 16, this.y + 16, this.tx + 16, this.ty + 16, this.lifetime);
+                drawLaser(this.x + 16, this.y + 16, this.tx + 16, this.ty + 16, cx, cy, this.lifetime);
                 break;
             case 1:
-                ctx.drawImage(imgArray[Math.ceil(8 - this.lifetime)], this.x - scrollX, this.y - scrollY);
+                ctx.drawImage(imgArray[Math.ceil(8 - this.lifetime)], this.x - cx, this.y - cy);
                 break; // explode - max lifetime : 8
             case 2: {
                 ctx.save();
-                var s = this.lifetime / this.startLifetime;
+                const s = this.lifetime / this.startLifetime;
                 ctx.scale(s, s);
-                ctx.drawImage(imgArray[14], (this.x - scrollX) / s - 48, (this.y - scrollY) / s - 48);
+                ctx.drawImage(imgArray[14], (this.x - cx) / s - 48, (this.y - cy) / s - 48);
                 ctx.restore();
             }break; // explode - max lifetime : 8
             case 3 : {
                 const rem = this.options.deadLine - now;
-                const rx = this.x - scrollX, ry = this.y - scrollY;
+                const rx = this.x - cx, ry = this.y - cy;
                 if (rem > 0) {
                     ctx.save();
                     ctx.fillStyle = '#FF111180';
@@ -388,8 +394,8 @@ window.tiles = new function() {
         // console.log(coX, coY, csX, csY, ceX, ceY);
 
         ctx.save(); // draw background pattern
-        let moveX = -((scrollX) % tiles[0].naturalWidth);
-        let moveY = -((scrollY) % tiles[0].naturalHeight);
+        let moveX = -((camera.x) % tiles[0].naturalWidth);
+        let moveY = -((camera.y) % tiles[0].naturalHeight);
         ctx.translate(moveX, moveY);
         ctx.fillStyle = pat1;
         ctx.fillRect(-32, -32, CW + 64, CH + 64);
@@ -495,7 +501,7 @@ window.CVGInterface = new function(){
             dDroid(xp,yp,t,u);
 
             ctx.strokeStyle = "white";//square of droid selected
-            ctx.strokeRect(u.x * tileSize - scrollX, u.y * tileSize - scrollY, 32, 32);
+            ctx.strokeRect(u.x * tileSize - camera.x, u.y * tileSize - camera.y, 32, 32);
         }
     }
 
@@ -571,10 +577,10 @@ window.CVGInterface = new function(){
 
     function drawMap() {
         if (mapEnabled) { //map drawing
-            var x = CW - 300;
-            var y = CH - 300;
-            var tx = scrollX / tileSize;
-            var ty = scrollY / tileSize;
+            let x = CW - 300;
+            let y = CH - 300;
+            const tx = camera.x / tileSize;
+            const ty = camera.y / tileSize;
             if (!mapDragging) {
                 if (mapScrollX + 50 < tx + (CW / tileSize) / 2) mapScrollX++;
                 if (mapScrollY + 50 < ty + (CH / tileSize) / 2) mapScrollY++;
@@ -624,8 +630,8 @@ window.CVGInterface = new function(){
             txt = "X: " + tmx + " - " + tex + ", Y: " + tmy + " - " + tey;
             ctx.strokeStyle = "lime";
             ctx.fillStyle = "rgba(0,128,0,0.3)";
-            var sx = Math.min(smx, mx) - scrollX;
-            var sy = Math.min(smy, my) - scrollY;
+            var sx = Math.min(smx, mx) - camera.x;
+            var sy = Math.min(smy, my) - camera.y;
             var width = Math.abs(smx - mx);
             var height = Math.abs(smy - my);
             ctx.fillRect(sx, sy, width, height);
@@ -821,14 +827,14 @@ window.CVGInterface = new function(){
         return buttons[idx];
     };
 
-    var tip = '';
-    var lastX, lastY;
-    var tileX, tileY;
+    let tip = '';
+    let lastX, lastY;
+    let tileX, tileY;
     function drawButtons(){
-        for(var i = 0; i < buttons.length; i++){
+        for (let i = 0; i < buttons.length; i++) {
             buttons[i].draw();
         }
-        if(!navsHidden){
+        if (!navsHidden) {
             ctx.fillStyle = '#08F4';
             ctx.fillRect(action * 32 + 128, 0, 32, 32);
         }
@@ -839,13 +845,13 @@ window.CVGInterface = new function(){
         ctx.textAlign = 'left';
         ctx.fillText(tip, lastX, lastY - 1);
 
-        if(action > 0){
+        if (action > 0) {
             if (actionAllowed) {
                 ctx.fillStyle = '#2D28'
             } else {
                 ctx.fillStyle = '#D228'
             }
-            ctx.fillRect(tileX * 32 - scrollX, tileY * 32 - scrollY, 32, 32);
+            ctx.fillRect(tileX * 32 - camera.x, tileY * 32 - camera.y, 32, 32);
         }
     }
 
@@ -895,7 +901,7 @@ window.CVGInterface = new function(){
 }();
 
 // main.js
-var overlay = document.getElementById("overlay");
+const overlay = document.getElementById("overlay");
 
 const lpanel = document.getElementById("login");
 const rpanel = document.getElementById("register");
@@ -944,7 +950,7 @@ window.onresize = function() {
 	CW = can.width;
 	CH = can.height;
 	notifyRadius = Math.min(CW, CH) >>> 2;
-	render(map, scrollX, scrollY, menu.style.display === 'none');
+	render(map, camera.x, camera.y, menu.style.display === 'none');
 };
 
 const pressed = {
@@ -1019,8 +1025,9 @@ document.body.onkeydown = function(evt) {
 		case "x" : {
 			if (selected.length <= 10 || confirm(`Are you sure to remove ${selected.length} units?`)) socket.emit('delete', selected);
 		}break;
-        case 'Enter': {
+        case 't': {
             if (!chat.chatting) chat.input.focus();
+            evt.preventDefault()
         }break;
 		case 'Up': {
 			pressed.ArrowUp = true;
@@ -1076,7 +1083,7 @@ function backReg() {
 }
 document.getElementById('backregbtn').addEventListener('click', backReg);
 
-var dirsbytype = {
+const dirsbytype = {
 	
 	"0,-1": 0,
 	"0,1": 2,
@@ -1085,20 +1092,20 @@ var dirsbytype = {
 	"NaN,NaN": 0,
 };
 
-var mx = 0, my = 0;
-var smx = 0, smy = 0;
-var tmx = 0, tmy = 0;
-var marking = false;
-var mapDragging = false;
-var myTeam = -1;
-var selected = [];
-var oSelected = {};
-var moving = [];
-var droids = [];
-var onDroid = false;
-var bigs = [];
-var iStart = Date.now();
-var teams = [];
+let mx = 0, my = 0;
+let smx = 0, smy = 0;
+let tmx = 0, tmy = 0;
+let marking = false;
+let mapDragging = false;
+let myTeam = -1;
+let selected = [];
+let oSelected = {};
+let moving = [];
+let droids = [];
+let onDroid = false;
+const bigs = [];
+let iStart = Date.now();
+let teams = [];
 
 function Entity(x, y, id, lifetime, tx, ty, options){
 	this.x = x;
@@ -1118,65 +1125,18 @@ function clearSelect(){
 	oSelected = {};
 	selected = [];
 }
+let mapScrollX = 0;
+let mapScrollY = 0;
 
-function attack(d1,d2){
-	if(d1.r === 0){
-		if(d2.hp <= 0){
-			d1.target = null;
-			return false;
-		}else if(!d2.target && !d2.isMoving){
-			d2.target = d1.id;
-			d2.targetX = d1.x;
-			d2.targetY = d1.y;
-			moving.push(d2);
-		}
-		d1.r = 4;
-		d2.hp -= 5;
-		d2.dmg = true;
-		if(d2.hp <= 0){
-			d1.target = null;
-			return true;
-		}
-	}else{
-		d1.r--;
-	}
+function scrollToDroid (droidId) {
+	const d = droids[droidId];
+	if (d) camera.scrollTo(d.x * tileSize, d.y * tileSize, true)
 }
 
-var scrollX = tileSize * 50 - CW / 2;
-var scrollY = tileSize * 50 - CH / 2;
-var mapScrollX = 0;
-var mapScrollY = 0;
-
-let minScrollX = 32 * -100;
-let maxScrollX = -minScrollX;
-let minScrollY = 32 * -100;
-let maxScrollY = -minScrollY;
-
-function valiScroll(){
-	if(scrollX < minScrollX)
-		scrollX = minScrollX;
-	else if(scrollX > maxScrollX - CW + 1024)
-		scrollX = maxScrollX - CW + 1024;
-	
-	if(scrollY < minScrollY)
-		scrollY = minScrollY;
-	else if(scrollY > maxScrollY)
-		scrollY = maxScrollY;
-}
-
-function scrollToDroid(droidId){
-	var d = droids[droidId];
-	if(d){
-		scrollX = (d.x * tileSize) - (CW / 2);
-		scrollY = (d.y * tileSize) - (CH / 2);
-		valiScroll();
-	}
-}
-
-function scrollToMyDroids(){
-	for(var i in droids){//scrolls to your army
-		var d = droids[i];
-		if(d && d.team === myTeam){
+function scrollToMyDroids () {
+	for (let i in droids) {//scrolls to your army
+		const d = droids[i];
+		if (d && d.team === myTeam) {
 			scrollToDroid(i);
 			scrolledToMyDroids = true;
 			entities.push(new Entity(d.x * 32 + 16, d.y * 32 + 16, 2, 30, 0, 0));
@@ -1199,7 +1159,7 @@ function render(map, x, y, g){
             tiles.drawUnits(x, y);
 
             for (let i = 0; i < entities.length; i++) {
-                entities[i].draw(then);
+                entities[i].draw(then, x, y);
             }
 
             CVGInterface.draw();
@@ -1207,7 +1167,7 @@ function render(map, x, y, g){
         })
     }
 }
-function Droid(x,y,team,type = 0){
+function Droid(x, y, team, type = 0) {
 	this.x = x;
 	this.y = y;
 	this.hp = 50;
@@ -1248,7 +1208,7 @@ function preinit() {
 	}
 	myTeam = 0;
 	teams = [{img: tiles.prepareDroidTiles(Math.random() * 255, Math.random() * 255,Math.random() * 255), temp: false}];
-	render(map, scrollX, scrollY, true); // draw that background
+	render(map, camera.x, camera.y, true); // draw that background
 }
 function red(str) { // just span with red color
 	return "<span style='color: red'>" + str +  "</span>";
@@ -1276,7 +1236,7 @@ function play() {
 }
 document.getElementsByClassName('left-thick')[0].onclick = play;
 let tryLogin = function() {
-	if (pe.value === "") pe.type = "password";
+	if (pe.value) pe.type = "password";
 	else play();
 }; //login
 document.getElementsByClassName('login-button')[0].onclick = tryLogin;
@@ -1301,26 +1261,23 @@ socket.on("disconnect",function(evt){
 
 function deleteDroid() {
 	const px = this.x * 32, py = this.y * 32;
-	const distance = Math.hypot(px - scrollX, py - scrollY);
+	const distance = Math.hypot(px - camera.x, py - camera.y);
 	map.setBlockU(this.x, this.y, null);
 	droids[this.i] = null;
 	entities.push(new Entity(px, py, 1, 7));
 	playSFX(1, distance < 640 ? 1 : 640 / distance);
 }
-socket.on("map",function(evt){
-	minScrollX = minScrollY = Infinity;
-	maxScrollX = maxScrollY = -Infinity;
+socket.on("map", function (evt) {
+
+	camera.clearClip();
 	map.data.chunks = evt.m.c;
 	for (let xy in map.data.chunks) {
 		let cordsNormal = xy.split(',');
 		const cords = cordsNormal.map((a) => a << 10);
 		map.prerenderChunk(evt.m.c[xy], cordsNormal[0], cordsNormal[1]);
-		if (minScrollX > cords[0]) minScrollX = cords[0];
-		if (minScrollY > cords[1]) minScrollY = cords[1];
-		if (maxScrollX < cords[0]) maxScrollX = cords[0];
-		if (maxScrollY < cords[1]) maxScrollY = cords[1];
+		camera.clip(cords[0], cords[1])
+		camera.clip(cords[0] + 1024, cords[1] + 1024)
 	}
-	maxScrollX += CW;
 
 	teams = evt.t;
 	serverConfig = evt.config;
@@ -1415,10 +1372,7 @@ socket.on("map",function(evt){
                 console.log('got chunk ' + id);
 
 				let cords = id.split(',').map((a) => a << 10);
-				if (minScrollX > cords[0]) minScrollX = cords[0];
-				if (minScrollY > cords[1]) minScrollY = cords[1];
-				if (maxScrollX < cords[0]) maxScrollX = cords[0];
-				if (maxScrollY < cords[1]) maxScrollY = cords[1];
+				camera.clip(cords[0], cords[1])
             }
 			for (var i = 0; i < evt.d.length; i++) {
 				var d = evt.d[i];
@@ -1440,21 +1394,17 @@ socket.on("map",function(evt){
 						entities.push(new Entity(px + Math.sin(d1.angle) * 4, py + Math.cos(d1.angle) * 4, 0, 10, d2.x * 32, d2.y * 32));
 					} else entities.push(new Entity(px, py, 0, 10, d2.x * 32, d2.y * 32));
 					d2.hp -= attacks[i][2];
-					const distance = Math.hypot(px - scrollX, py - scrollY);
+					const distance = Math.hypot(px - camera.x, py - camera.y);
 					playSFX(0, distance < 640 ? 1 : 640 / distance);
 				}
 			}
-		});
-
-		socket.on('highScores', function(evt) {
-			highScores = evt;
 		});
 		socket.on('factorized', function(evt) {
 			for (var i = 0; i < evt.length; i++) {
 				var d = evt[i];
 				droids[d.id] = d;
 				map.setBlockU(d.x, d.y, d);
-				const distance = Math.hypot(d.x * 32 - scrollX, d.y * 32 - scrollY);
+				const distance = Math.hypot(d.x * 32 - camera.x, d.y * 32 - camera.y);
 				playSFX(2, distance < 640 ? 1 : 640 / distance);
 			}
 		});
@@ -1494,14 +1444,6 @@ socket.on("map",function(evt){
 	menu.style.display = 'none';
 });
 
-function scrol(x, y){
-	var v1 = scrollX, v2 = scrollY;
-	scrollX += x;
-	scrollY += y;
-	valiScroll();
-	mx += scrollX - v1;
-	my += scrollY - v2;
-}
 let prevClientLoad = 0;
 const loopFunc = function() {
 
@@ -1510,22 +1452,12 @@ const loopFunc = function() {
 	clientLoad = 0;
 
 	if (!chat.chatting) {
-		let x = 0, y = 0;
-		if (pressed.w || pressed.ArrowUp) {
-			y = -8;
-		} else if (pressed.s || pressed.ArrowDown) {
-			y = 8;
-		}
-		if (pressed.d || pressed.ArrowRight) {
-			x = 8;
-		} else if (pressed.a || pressed.ArrowLeft) {
-			x = -8;
-		}
-		scrol(x, y);
-		valiScroll();
+        const {x, y} = camera.processScroll(pressed);
+        mx += x
+        my += y
     }
     
-    render(map, scrollX, scrollY)
+    render(map, camera.x, camera.y)
 
 	clientLoad += Math.round((Date.now() - then) / 0.3);
 };
@@ -1539,14 +1471,15 @@ function init() {
 	can.onmousedown = function(evt) {
 		if (evt.altKey && evt.button !== 0) return false;
 		if (CVGInterface.processButtons(evt.pageX, evt.pageY, true)) return;
-		if ((evt.pageX > CW - 300) && (evt.pageY > CH - 300)){ // clicks on map
-			scrollX = Math.round((evt.pageX - CW + 300 + mapScrollX * 3) * tileSize / 3 - CW / 2);
-			scrollY = Math.round((evt.pageY - CH + 300 + mapScrollY * 3) * tileSize / 3 - CH / 2);
-			valiScroll();
+        if ((evt.pageX > CW - 300) && (evt.pageY > CH - 300)){ // clicks on map
+            camera.scrollTo (
+                (evt.pageX - CW + 300 + mapScrollX * 3) * tileSize / 3 - CW / 2,
+                (evt.pageY - CH + 300 + mapScrollY * 3) * tileSize / 3 - CH / 2
+            )
 			mapDragging = true;
 		} else if((evt.pageX > 40) || (evt.pageY > 352 )){//out of CVGInterface
-			smx = evt.pageX + scrollX;
-			smy = evt.pageY + scrollY;
+			smx = evt.pageX + camera.x;
+			smy = evt.pageY + camera.y;
 			tmx = Math.floor(smx / tileSize);
 			tmy = Math.floor(smy / tileSize);
 			marking = true;
@@ -1569,8 +1502,8 @@ function init() {
 	};
 	can.onmouseup = function(evt) {
 		if (marking) {
-			var emx = evt.pageX + scrollX;
-			var emy = evt.pageY + scrollY;
+			var emx = evt.pageX + camera.x;
+			var emy = evt.pageY + camera.y;
 			var tex = Math.floor(emx / tileSize);
 			var tey = Math.floor(emy / tileSize);
 			var block = map.getBlock(tex, tey);
@@ -1639,7 +1572,7 @@ function init() {
 							var nearest = selected.slice(0).sort(function(a, b) {
 								var d1 = droids[a];
 								var d2 = droids[b];
-								return dist(d1.x - tex, d1.y - tey) - dist(tex - d2.x, tey - d2.y)
+								return Math.hypot(d1.x - tex, d1.y - tey) - Math.hypot(tex - d2.x, tey - d2.y)
 							});
 							var drs = findActorDroids(nearest, 5);
 							var data = {
@@ -1681,8 +1614,8 @@ function init() {
 		var actionAllowed = false;
 		if (!evt)return false;
 		if ((evt.pageX > 40) || (evt.pageY > 352 )) { // out of CVGInterface
-			mx = evt.pageX + scrollX;
-			my = evt.pageY + scrollY;
+			mx = evt.pageX + camera.x;
+			my = evt.pageY + camera.y;
 			var action = CVGInterface.getAction();
 			var tex = Math.floor(mx / tileSize);
 			var tey = Math.floor(my / tileSize);
@@ -1706,16 +1639,16 @@ function init() {
 			}
 		}
 		
-		if(mapDragging){
-			scrollX = Math.round((evt.pageX - CW + 300 + mapScrollX * 3) * tileSize / 3 - CW / 2);
-			scrollY = Math.round((evt.pageY - CH + 300 + mapScrollY * 3) * tileSize / 3 - CH / 2);
-		}
+		if (mapDragging) camera.scrollTo(
+            (evt.pageX - CW + 300 + mapScrollX * 3) * tileSize / 3 - CW / 2,
+            (evt.pageY - CH + 300 + mapScrollY * 3) * tileSize / 3 - CH / 2
+        )
 
 		CVGInterface.processButtons(evt.pageX, evt.pageY, false);
 	};
 
 	if(teams[myTeam].t) {
-		var registerButton = new CVGInterface.createCanvasButton(0, 0, 75, 20, 'Register');
+		const registerButton = new CVGInterface.createCanvasButton(0, 0, 75, 20, 'Register');
 		registerButton.onclick = function() {
 			menuInterface.switchTo(1);
 			overlay.style.display = 'flex';
@@ -1723,8 +1656,7 @@ function init() {
 		}
 	}
 
-	valiScroll();
-	loop = setInterval(loopFunc,30);
+	loop = setInterval(loopFunc, 30);
 	menuOn = false;
 	chat.setOn(document.getElementById("chat-on").checked)
 	can.style.filter = 'none';
