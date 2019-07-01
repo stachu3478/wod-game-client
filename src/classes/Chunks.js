@@ -91,6 +91,7 @@ class Chunks {
     }
 
     setBlock (x, y, id) { // set pixels
+        let px, py;
         const b = this.data.chunks[idx = (px = Math.floor(x / chunkSize)) + "," + (py = Math.floor(y / chunkSize))];
         const rx = Math.floor(x % chunkSize), ry = Math.floor(y % chunkSize),bx = (rx < 0 ? rx + chunkSize : rx), by = (ry < 0 ? ry + chunkSize : ry);
         try {

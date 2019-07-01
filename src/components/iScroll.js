@@ -31,7 +31,7 @@ function handleScrollBarUpdate(evt) {
 
 const iScroll = () => {
     for (let k of scrollable) {
-        k.onmousewheel = handleScroll.bind(scrollbars[n]);
+        k.onwheel = handleScroll.bind(scrollbars[n]);
         k.onscroll = handleScrollBarUpdate.bind({scrollable: k, scrollBar: scrollbars[n++]});
     }
 }

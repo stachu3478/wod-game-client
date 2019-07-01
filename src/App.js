@@ -5,10 +5,11 @@ import Chunks from './classes/Chunks'
 
 import LoadableImage from './classes/LoadableImage'
 
-import { getXY } from './components/miscs'
+import { getXY, binToGr } from './components/miscs'
 import { tileSize } from './components/configVars'
 import Chat from './classes/Chat'
 import Camera from './classes/Camera'
+import Highscores from './classes/Highscores'
 
 const App = () => {
 
@@ -697,20 +698,6 @@ window.CVGInterface = new function(){
         ctx.fillText(txt,1,CH - 1);
     }
 
-    function renderHighscores(){
-        ctx.strokeRect(CW - 192, 64, 192, highScores.length * 16);
-        ctx.fillStyle = cardColor;
-        ctx.fillRect(CW - 192, 64, 192, highScores.length * 16);
-        ctx.font = '12px Georgia';
-        ctx.fillStyle = '#FFFFFF';
-        for(let i = 0; i < highScores.length; i++){
-            ctx.textAlign = 'left';
-            ctx.fillText((i + 1) + '. ' + (highScores[i].name || 'A nameless commander') + ':', CW - 192, 78 + i * 16, 160);
-            ctx.textAlign = 'right';
-            ctx.fillText(highScores[i].score.toString(), CW - 1, 78 + i * 16, 32);
-        }
-    }
-
     function drawBigNotification(){
         var big = bigs[0];
         if(big){//render big notification
@@ -735,7 +722,6 @@ window.CVGInterface = new function(){
 
     this.draw = function(){
         drawDroidCard();
-        renderHighscores();
         drawSelectedDroids();
         drawMap();
         drawMarkingArea();
@@ -1190,6 +1176,12 @@ function Droid(x, y, team, type = 0) {
 }
 
 let map;
+function getXYV2 (x, y) {
+    return getXY (
+        binToGr(x, y < 0 ? -y >> 2 : y),
+        binToGr(y, x < 0 ? -x >> 2 : x)
+    )
+}
 function preinit() {
 	can.width--; // somehow this functions make rendering on canvas few times faster
 	can.width++;
@@ -1373,6 +1365,7 @@ socket.on("map", function (evt) {
 
 				let cords = id.split(',').map((a) => a << 10);
 				camera.clip(cords[0], cords[1])
+				camera.clip(cords[0] + 1024, cords[1] + 1024)
             }
 			for (var i = 0; i < evt.d.length; i++) {
 				var d = evt.d[i];
@@ -1463,8 +1456,8 @@ const loopFunc = function() {
 };
 let loop = 0;
 let menuOn = true;
-let highScores = [];
 let gameOn = false;
+const highscores = new Highscores(document.getElementsByClassName('highscores')[0])
 function init() {
     if (gameOn) return;
     gameOn = true;
@@ -1473,8 +1466,9 @@ function init() {
 		if (CVGInterface.processButtons(evt.pageX, evt.pageY, true)) return;
         if ((evt.pageX > CW - 300) && (evt.pageY > CH - 300)){ // clicks on map
             camera.scrollTo (
-                (evt.pageX - CW + 300 + mapScrollX * 3) * tileSize / 3 - CW / 2,
-                (evt.pageY - CH + 300 + mapScrollY * 3) * tileSize / 3 - CH / 2
+                (evt.pageX - CW + 300 + mapScrollX * 3) * tileSize / 3,
+                (evt.pageY - CH + 300 + mapScrollY * 3) * tileSize / 3,
+                true
             )
 			mapDragging = true;
 		} else if((evt.pageX > 40) || (evt.pageY > 352 )){//out of CVGInterface
@@ -1647,7 +1641,7 @@ function init() {
 		CVGInterface.processButtons(evt.pageX, evt.pageY, false);
 	};
 
-	if(teams[myTeam].t) {
+	if (teams[myTeam].t) {
 		const registerButton = new CVGInterface.createCanvasButton(0, 0, 75, 20, 'Register');
 		registerButton.onclick = function() {
 			menuInterface.switchTo(1);
@@ -1658,7 +1652,8 @@ function init() {
 
 	loop = setInterval(loopFunc, 30);
 	menuOn = false;
-	chat.setOn(document.getElementById("chat-on").checked)
+    chat.setOn(document.getElementById("chat-on").checked)
+    highscores.setOn(document.getElementById('hi-scores-on').checked)
 	can.style.filter = 'none';
 
 
@@ -1681,7 +1676,8 @@ function deinit(){
 	CVGInterface.removeButton('Register');
 	selected = [];
 	can.style.filter = 'blur(2px)';
-	chat.off()
+    chat.off()
+    highscores.off()
 }
 
 }

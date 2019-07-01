@@ -1,0 +1,45 @@
+.highscores {
+	background-color: transparent;
+	align-self: flex-start;
+	margin-top: 64px;
+	display: flex;
+	flex-direction: row-reverse;
+	width: 100%;
+    color: white;
+    font-family: Consolas;
+    font-size: 12px;
+    table {
+        background-color: rgba(0, 0, 0, 0.7);
+        list-style: none;
+        padding-left: 0;
+        padding: 3px;
+        border-radius: 4px;
+        border-spacing: 0;
+        tr {
+            //display: flex;
+            min-width: 1000px;
+            :nth-child(1) {
+                text-align: center;
+            }
+            :nth-child(2) {
+                text-align: left;
+                font-family: open ,sans-serif, serif;
+            }
+            :nth-child(3) {
+                text-indent: 8px;
+                text-align: right;
+                //flex: 1;
+            }
+            :nth-child(odd) {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+            td {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+        }
+    }
+}
+
+.highscores table :nth-child(odd) {
+    background-color: rgba(128, 128, 128, 0.2);
+}

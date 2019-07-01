@@ -19,7 +19,8 @@
 	border: 1px grey solid;
     padding: 2px;
     li {
-        animation-play-state: paused;
+        //animation-play-state: paused;
+        animation-delay: -10s;
     }
 }
 
@@ -73,7 +74,7 @@
                 background-color: rgba(0, 0, 0, 0.6);
                 animation-name: vanishing;
                 animation-duration: 10s;
-                animation-timing-function: cubic-bezier(0.75, 0, 1, 1);
+                animation-timing-function: cubic-bezier(0.98, 0, 1, 1);
             }
         }
     }
