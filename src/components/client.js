@@ -1,6 +1,7 @@
 import io from 'socket.io-client'
 
-/** @inheritdoc */
-const socket = new io('http://wodgame.herokuapp.com');
+const devMode = window.location.hostname.match('localhost')
+const url = devMode ? 'localhost:25565' : 'http://wodgame.herokuapp.com'
+const socket = new io(url);
 
 export default socket

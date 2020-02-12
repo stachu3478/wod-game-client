@@ -11,7 +11,22 @@ import Chat from './classes/Chat'
 import Camera from './classes/Camera'
 import Highscores from './classes/Highscores'
 
+import Logger from './classes/Logger'
+
 const App = () => {
+
+const logger = new Logger ( {
+    playButton: document.getElementsByClassName('left-thick')[0],
+    loginButton: document.getElementsByClassName('login-button')[0],
+    registerButton: document.getElementById('regbtn'),
+    loginNotice: document.getElementById('noticeArea'),
+    registerNotice: document.getElementById('rnoticeArea'),
+    loginInput: document.getElementById('username'),
+    passwordInput: document.getElementById('password'),
+    regLoginInput: document.getElementById("username_reg"),
+    regPasswordInput: document.getElementById("password_reg1"),
+    emailInput: document.getElementById("email")
+})
 
 // misc.js
 function isPointInBox(bx, by, width, height, x, y){
@@ -132,335 +147,7 @@ const camera = new Camera(
 
 Math.zmod = function (a, b) { return a - (Math.floor(a / b) * b)};
 
-window.tiles = new function() {
-
-    var bCols = ["",
-        "rgb(255,0,0)",
-        "rgb(224,32,0)",
-        "rgb(192,64,0)",
-        "rgb(160,96,0)",
-        "rgb(128,128,0)",
-        "rgb(96,160,32)",
-        "rgb(64,192,64)",
-        "rgb(32,224,96)",
-    ];
-
-    const droidTypes = 14;
-
-    let pat1;
-    let pat2;
-    let dImagesData = [];
-    function init() {
-        pat1 = ctx.createPattern(tiles[0], 'repeat'); // background pattern 3x faster i hope
-        pat2 = ctx.createPattern(tiles[4], 'repeat'); // border pattern
-        for (let i = 0;i < dImages.length;i++) {// convert images to imageData objects
-            const img = dImages[i];
-            ctx.clearRect(0,0, img.naturalWidth, img.naturalHeight);
-            ctx.drawImage(img,0,0);
-            dImagesData.push(ctx.getImageData(0,0, img.naturalWidth, img.naturalHeight));
-        }
-    }
-
-    let imgArray = [];
-    let dImages = [];
-    for (let it = 1;it <= droidTypes;it++) { // import images
-        dImages.push(new LoadableImage("tiles/d" + it + "r.png"));
-    }
-
-    let tiles = [];
-    this.tiles = tiles;
-    for (let i = 1;i < 6;i++) {
-        tiles.push(new LoadableImage("tiles/" + i + ".bmp"));
-    }
-
-    for (let i = 1;i < 8;i++) {
-        imgArray.push(new LoadableImage("tiles/explode" + i + ".png"));
-    }
-
-    for (let i = 1;i < 8;i++) {
-        imgArray.push(new LoadableImage("tiles/button" + i + ".png"));
-    }
-
-    imgArray.push(new LoadableImage("tiles/arrows.png"));
-
-    LoadableImage.fetch()
-    .then(() => {
-        init();
-        preinit();
-    })
-
-    this.drawImg = function(i, x, y) {
-        return ctx.drawImage(imgArray[i], x, y);
-    };
-
-    this.drawTile = function(i, x, y) {
-        return ctx.drawImage(tiles[i], x, y);
-    };
-
-    function drawLaser(x, y, tx, ty, cx, cy, l){
-        ctx.beginPath();
-        ctx.strokeStyle = 'pink';
-        ctx.lineWidth = 5;
-        let ex = 0, ey = 0;
-        const rx = tx - x, ry = ty - y;
-        const lp = (10 - l) * 40;
-        const d = Math.hypot(rx, ry);
-        if (l > 5) {
-            ctx.moveTo(x - cx, y - cy);
-            if (d > lp) {
-                ctx.lineTo(x + rx * lp / d - cx, y + ry * lp / d - cy);
-            } else {
-                ctx.lineTo(tx - cx, ty - cy);
-                for (var i = 0; i < 5; i++) {
-                    ex += Math.random() * 4 - 2;
-                    ey += Math.random() * 4 - 2;
-                    ctx.lineTo(tx + ex - cx, ty + ey - cy);
-                }
-            }
-        } else {
-            const sp = (5 - l) * 40;
-            if (d > sp) {
-                ctx.moveTo(x + rx * sp / d - cx, y + ry * sp / d - cy);
-            } else {
-                ctx.moveTo(tx - cx, ty - cy);
-            }
-            if (d > lp) {
-                ctx.lineTo(x + rx * lp / d - cx, y + ry * lp / d - cy);
-            } else {
-                ctx.lineTo(tx - cx, ty - cy);
-                for (let i = 0; i < 5; i++) {
-                    ex += Math.random() * 4 - 2;
-                    ey += Math.random() * 4 - 2;
-                    ctx.lineTo(tx + ex - cx, ty + ey - cy);
-                }
-            }
-        }
-        ctx.stroke();
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 3;
-        ctx.stroke();
-    }
-
-    function dDroid(x, y, t, u) {
-        let tp1;
-        switch(u.type) {
-            case 0: tp1 = u.dir || 0;break;
-            case 1: tp1 = 4;break;
-            case 2: tp1 = 5;break;
-            case 3: tp1 = 6;break;
-            case 4: tp1 = 7;break;
-            case 5: tp1 = 9;break;
-            case 6: tp1 = 10 + u.dir || 0;
-        }
-        ctx.drawImage(teams[u.team].img[tp1], x, y);
-        if (u.type === 4) {
-            ctx.fillStyle = '#2D2A';
-            ctx.beginPath();
-            ctx.moveTo(x + 16, y + 16);
-            ctx.lineTo(x + 16, y - 4);
-            ctx.arc(x + 16, y + 16, 20, -Math.PI / 2, (1 - ((u.tol + (u.moveTime - Date.now()) / 500) / spec[u.metaMorph].transformTime)) * Math.PI * 2 - Math.PI / 2, false);
-            ctx.fill();
-        } else if(u.type === 2) {
-            ctx.save();
-            ctx.translate(x + 16, y + 16);
-            ctx.rotate(u.angle);
-            ctx.drawImage(teams[u.team].img[8], -24, -24);
-            ctx.restore();
-        }
-    }
-    this.dDroid = dDroid;
-
-    function hpBar(p, x, y) {
-        var sx = x + 30;
-        var sy = y + 29;
-        var loops = Math.ceil(p * 8) + 1;
-        for (var i = 1; i < loops; i++) {
-            ctx.strokeStyle = bCols[i];
-            ctx.beginPath();
-            ctx.moveTo(sx - i,sy);
-            ctx.lineTo(sx,sy);
-            ctx.stroke();
-            //ctx.strokeRect(sx - i,sy,i,0);
-            sy -= 2;
-        }
-    }
-
-    this.drawEntity = function(now, cx, cy) {
-        switch (this.id) {
-            case 0:
-                drawLaser(this.x + 16, this.y + 16, this.tx + 16, this.ty + 16, cx, cy, this.lifetime);
-                break;
-            case 1:
-                ctx.drawImage(imgArray[Math.ceil(8 - this.lifetime)], this.x - cx, this.y - cy);
-                break; // explode - max lifetime : 8
-            case 2: {
-                ctx.save();
-                const s = this.lifetime / this.startLifetime;
-                ctx.scale(s, s);
-                ctx.drawImage(imgArray[14], (this.x - cx) / s - 48, (this.y - cy) / s - 48);
-                ctx.restore();
-            }break; // explode - max lifetime : 8
-            case 3 : {
-                const rem = this.options.deadLine - now;
-                const rx = this.x - cx, ry = this.y - cy;
-                if (rem > 0) {
-                    ctx.save();
-                    ctx.fillStyle = '#FF111180';
-                    ctx.font = '16px Consolas';
-                    if (rx >= -32 && rx <= CW + 32 && ry >= -32 && ry <= CH + 32) {
-                        ctx.translate(rx + 16, ry + 16);
-                        ctx.rotate(rem / 1000);
-                        ctx.fillRect(-16, -16, 32, 32);
-                        ctx.restore();
-                        ctx.font = '16px Consolas';
-                        ctx.fillStyle = 'white';
-                        ctx.textAlign = 'center';
-                        ctx.fillText((rem / 1000).toPrecision(4), rx + 16, ry + 16);
-                    } else {
-                        const rot = Math.atan2(ry - (CH >>> 1), rx - (CW >>> 1))
-                        ctx.translate((CW >>> 1), CH >>> 1);
-                        ctx.rotate(rot);
-                        ctx.beginPath();
-                        ctx.moveTo(notifyRadius, -16);
-                        ctx.lineTo(notifyRadius + 32, 0);
-                        ctx.lineTo(notifyRadius, 16);
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.fillStyle = 'white';
-                        ctx.translate(notifyRadius, 0);
-                        ctx.rotate(-rot);
-                        ctx.fillText((rem / 1000).toPrecision(4), 0, 16);
-                        ctx.fillText((Math.hypot(rx - (CW >>> 2), ry - (CH >>> 2)) - notifyRadius).toPrecision(4), 0, -16);
-                    }
-                    ctx.restore();
-                } else {
-                    ctx.save();
-                    ctx.lineWidth = this.options.power / -rem;
-                    ctx.strokeStyle = 'white';
-                    ctx.beginPath();
-                    ctx.arc(rx + 16, ry + 16, -(rem << 1), 0, 2 * Math.PI);
-                    ctx.stroke();
-                    ctx.restore();
-                }
-            }
-        }
-        if (this.lifetime-- <= 0) {
-            delete entities[entities.indexOf(this)];
-            entities = entities.filter(f);
-        }
-    };
-
-    function prerenderTile(imgId, r, g, b){
-        var img = dImagesData[imgId];
-        var imgData = ctx.createImageData(img.width,img.height);
-        var dat = img.data;
-        for(var i = 0;i < imgData.data.length;i += 4){
-            var base = (dat[i + 1] + dat[i + 2]) / 2;
-            var m = dat[i] - base; //color strength xd
-            imgData.data[i] = base + Math.round((m / 255) * r);
-            imgData.data[i + 1] = base + Math.round((m / 255) * g);
-            imgData.data[i + 2] = base + Math.round((m / 255) * b);
-            imgData.data[i + 3] = Math.round(img.data[i + 3]);
-        }
-        ctx2.clearRect(0,0,100,100);
-        ctx2.putImageData(imgData, 0, 0);
-        var img2 = new Image();
-        img2.src = cv2.toDataURL("image/png");
-        return img2;
-    }
-
-    this.prepareDroidTiles = function(r, g, b){
-        var arr = [];
-        for(var j = 0;j < dImagesData.length;j++){
-            arr.push(prerenderTile(j,r,g,b));
-        }
-        return arr;
-    };
-
-    this.drawTileMap = function(map, x, y, generateIfNotExists) {
-        /*var oX = Math.zmod(x, tileSize);
-        var oY = Math.zmod(y, tileSize);
-        var sX = Math.floor(x / tileSize);
-        var sY = Math.floor(y / tileSize);
-        var eX = sX + Math.ceil(CW / tileSize);
-        var eY = sY + Math.ceil(CH / tileSize);*/
-
-        const chunkSize = tileSize * 32;
-        const coX = Math.zmod(x, chunkSize);
-        const coY = Math.zmod(y, chunkSize);
-        const csX = Math.floor(x / chunkSize);
-        const csY = Math.floor(y / chunkSize);
-        const ceX = csX + Math.ceil(CW / chunkSize);
-        const ceY = csY + Math.ceil(CH / chunkSize);
-        // console.log(coX, coY, csX, csY, ceX, ceY);
-
-        ctx.save(); // draw background pattern
-        let moveX = -((camera.x) % tiles[0].naturalWidth);
-        let moveY = -((camera.y) % tiles[0].naturalHeight);
-        ctx.translate(moveX, moveY);
-        ctx.fillStyle = pat1;
-        ctx.fillRect(-32, -32, CW + 64, CH + 64);
-        ctx.restore();
-
-        for (let i = csX, px = -coX; i <= ceX; i++, px += chunkSize) { // first loop for backdrop tiles
-            for (let j = csY, py = -coY; j <= ceY; j++ , py += chunkSize) {
-                const id = i + ',' + j;
-                const chunk = map.data.chunks[id]
-                           && map.data.chunks[id].chunkImage;
-                if (chunk) {
-                    ctx.drawImage(chunk, px, py);
-                } else if (generateIfNotExists) {
-                    map.genChunk(i, j);
-                    ctx.drawImage(map.data.chunks[id].chunkImage, px, py);
-                } else {
-                    ctx.fillStyle = '#0008';
-                    ctx.fillRect(px, py, 1025, 1025);
-                }
-            }
-        }
-
-        ctx.save(); // radiation border drawing
-        const size = (serverConfig.safeRadius) * 32;
-        moveX = -(((Date.now() >>> 6) - x) % tiles[4].naturalWidth);
-        moveY = y % tiles[4].naturalHeight;
-        ctx.translate(moveX, moveY);
-        ctx.lineWidth = 8;
-        ctx.strokeStyle = pat2;
-        ctx.strokeRect(-size - x - moveX, -size - y - moveY, 2 * size + 32, 2 * size + 32);
-        ctx.restore();
-    };
-
-    this.drawUnits = function(x, y) {
-        const now = Date.now();
-        for (var i in droids) { // second one for droids
-            var u = droids[i];
-            if (u !== null) {
-                var px = u.x * tileSize - x;
-                var py = u.y * tileSize - y;
-                if ((px > -64) && (px < (CW + 64)) && (py > -64) && (py < (CH + 64))) {
-                    const t = teams[u.team] || {r: Math.floor(Math.random() * 255), g: Math.floor(Math.random() * 255), b: Math.floor(Math.random() * 255)};
-                    let offsetX = 0;
-                    let offsetY = 0;
-                    if (u.isMoving) {
-                        const stamp = now < u.moveTime ? (u.moveTime - now) / 499 : 0;
-                        if (stamp) {
-                            offsetX += (u.lastX - u.x) * stamp * tileSize;
-                            offsetY += (u.lastY - u.y) * stamp * tileSize;
-                            u.maxOffset = stamp;
-                        }
-                    }
-                    if (isNaN(u.dir)) u.dir = dirsbytype[(u.x - u.lastX) + "," + (u.y - u.lastY)] || 0;
-                    dDroid(px + offsetX,py + offsetY, t, u);
-                    //if(u.dmg){
-                    //sfx[0].play();
-                    u.dmg = false;
-                    //};
-                    if (selected.indexOf(u.id) > -1) hpBar((u.hp / spec[u.type].hp),px + offsetX,py + offsetY);
-                }
-            }
-        }
-    };
-}();
+// TODO import tiles and init
 
 // CVGInterface.js
 window.CVGInterface = new function(){
@@ -512,7 +199,7 @@ window.CVGInterface = new function(){
             var xp = x || 0;
             var yp = y || 320;
             var u = droids[selected[0]];
-            var maxHp = spec[u.type].hp;
+            var maxHp = spec[u ? u.type : 0].hp;
             ctx.lineWidth = 2;
             ctx.strokeRect(xp,yp,128,64);
             ctx.fillStyle = cardColor;
@@ -1222,20 +909,10 @@ var out = document.getElementById('noticeArea');
 var out2 = document.getElementById('rnoticeArea');
 var menu = document.getElementById('overlay');
 var scrolledToMyDroids = false;
-function play() {
-	socket.emit("login",{u: ue.value, p: pe.value});
-	document.getElementById('noticeArea').innerText = 'Connecting';
-}
-document.getElementsByClassName('left-thick')[0].onclick = play;
-let tryLogin = function() {
-	if (pe.value) pe.type = "password";
-	else play();
-}; //login
-document.getElementsByClassName('login-button')[0].onclick = tryLogin;
 socket.on("err",function(err) {
 	switch(err.msg){
-		case "Temporary account created": {tryLogin();out.innerText = "Logging in..."};break;
-		case "Password needed": {pe.type = "password";;out.innerText = "Type password"};break;
+		case "Temporary account created": {out.innerText = "Logging in..."};break;
+		case "Password needed": {pe.classList.remove('hidden');out.innerText = "Type password"};break;
 		case "Wrong password": {out.innerHTML = red("Wrong password or login.")};break;
 		case "Your army was destroyed!": {menu.style.display = 'flex';deinit();out.innerText = "Your army has been destroyed!"};break;
 		case "Kicked": {menu.style.display = 'flex';deinit();out.innerHTML = red("You were kicked from the server.")};break;
@@ -1376,21 +1053,23 @@ socket.on("map", function (evt) {
 			}
 		});
 
-		socket.on('attacks', function(attacks) {
-			for (var i = 0; i < attacks.length; i += 1) {
-				var d1 = droids[attacks[i][0]], d2 = droids[attacks[i][1]];
+		socket.on('attacks', (attacks) => {
+            attacks.forEach((a, i) => {
+                var d1 = droids[a[0]], d2 = droids[a[1]];
 				if (d1 && d2) {
-					const px = d1.x * 32, py = d1.y * 32;
-					if (d1.type === 2) {
-						d1.angle = Math.atan2(d2.y - d1.y, d2.x - d1.x);
-						entities.push(new Entity(px - Math.sin(d1.angle) * 4, py - Math.cos(d1.angle) * 4, 0, 10, d2.x * 32, d2.y * 32));
-						entities.push(new Entity(px + Math.sin(d1.angle) * 4, py + Math.cos(d1.angle) * 4, 0, 10, d2.x * 32, d2.y * 32));
-					} else entities.push(new Entity(px, py, 0, 10, d2.x * 32, d2.y * 32));
-					d2.hp -= attacks[i][2];
-					const distance = Math.hypot(px - camera.x, py - camera.y);
-					playSFX(0, distance < 640 ? 1 : 640 / distance);
+                    setTimeout(() => {
+                        const px = d1.x * 32, py = d1.y * 32;
+                        if (d1.type === 2) {
+                            d1.angle = Math.atan2(d2.y - d1.y, d2.x - d1.x);
+                            entities.push(new Entity(px - Math.sin(d1.angle) * 4, py - Math.cos(d1.angle) * 4, 0, 10, d2.x * 32, d2.y * 32));
+                            entities.push(new Entity(px + Math.sin(d1.angle) * 4, py + Math.cos(d1.angle) * 4, 0, 10, d2.x * 32, d2.y * 32));
+                        } else entities.push(new Entity(px, py, 0, 10, d2.x * 32, d2.y * 32));
+                        d2.hp -= a[2];
+                        const distance = Math.hypot(px - camera.x, py - camera.y);
+                        playSFX(0, distance < 640 ? 1 : 640 / distance);
+                    }, (d1.id << 8) / droids.length)
 				}
-			}
+            })
 		});
 		socket.on('factorized', function(evt) {
 			for (var i = 0; i < evt.length; i++) {
