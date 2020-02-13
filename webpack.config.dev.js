@@ -7,9 +7,13 @@ module.exports = {
   entry: {
     app: './src/index.js',
   },
+  devtool: 'eval-cheap-module-source-map',
   output: {
     filename: '[name].bundle.js',
     path: path.resolve(__dirname, 'dist'),
+  },
+  resolve: {
+    extensions: ['.ts', '.js'],
   },
   devServer: {
     contentBase: './public',
@@ -30,6 +34,9 @@ module.exports = {
         'css-loader', // translates CSS into CommonJS
         'sass-loader', // compiles Sass to CSS, using Node Sass by default
       ],
+    }, {
+      test: /\.ts$/,
+      loader: 'ts-loader',
     }],
   },
 };
