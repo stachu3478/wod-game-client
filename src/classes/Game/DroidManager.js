@@ -17,6 +17,18 @@ class DroidManager {
     return ds;
   }
 
+  selectByTeam(myTeam) {
+    this.droids.forEach((u) => {
+      if (u && u.team === myTeam && u.type !== 3) {
+        if (this.selected.indexOf(u.id) === -1) this.selected.push(u.id);
+      }
+    });
+  }
+
+  clearSelection() {
+    this.selected.splice(0);
+  }
+
   getDroids() {
     return this.droids;
   }

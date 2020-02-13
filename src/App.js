@@ -11,6 +11,7 @@ import Chat from './classes/Chat';
 import Camera from './classes/Camera';
 import Highscores from './classes/Highscores';
 import dirsbytype from './utils/dirsByType';
+import createCanForm from './utils/canForm';
 import spec from './utils/unitSpecification';
 import DroidManager from './classes/Game/DroidManager';
 import Droid from './classes/Game/Droid';
@@ -32,49 +33,8 @@ const App = () => {
   });
 
   // misc.js
-  const rowMan = [
-    [-1, -1],
-    [0, -1],
-    [1, -1],
-    [-1, 0],
-    [0, 0],
-    [1, 0],
-    [-1, 1],
-    [0, 1],
-    [1, 1],
-  ];
 
-  const patterns = [
-    [
-      0, 0, 0,
-      0, 0, 0,
-      0, 0, 0,
-    ],
-    [
-      0, 1, 0,
-      1, 1, 1,
-      0, 1, 0,
-    ],
-    [
-      1, 0, 1,
-      0, 1, 0,
-      1, 0, 1,
-    ],
-    [
-      0, 0, 0,
-      0, 1, 0,
-      0, 0, 0,
-    ],
-  ];
-  const canForm = (x, y, type) => {
-    for (let i = 0; i < 9; i++) {
-      const bi = map.getBlock(x + rowMan[i][0], y + rowMan[i][1]).i;
-      if (bi && patterns[type][i]) return false;
-    }
-    return true;
-  };
-
-  Math.zmod = function (a, b) { return a - (Math.floor(a / b) * b); };
+  Math.zmod = (a, b) => a - (Math.floor(a / b) * b);
 
   const can = document.getElementsByTagName('canvas')[0];
   const ctx = can.getContext('2d');
@@ -137,20 +97,7 @@ const App = () => {
     w: false,
   };
 
-  let serverConfig = {
-    radiation: 0,
-    safeRadius: Infinity,
-  };
-
-  function selectAll() {
-    droids.forEach((u) => {
-      if (u && u.team === myTeam && u.type !== 3) {
-        if (selected.indexOf(u.id) === -1)selected.push(u.id);
-      }
-    });
-  }
-
-  document.body.onkeydown = function (evt) {
+  document.body.onkeydown = (evt) => {
     pressed[evt.key] = true;
     if (menu.style.display !== 'none' || chat.chatting) return;
     switch (evt.key) {
@@ -161,7 +108,7 @@ const App = () => {
           selected = [];
           if (!chat.chatting) evt.preventDefault();
         } else {
-          selectAll();
+          droidManager.selectByTeam(myTeam);
         }
         break;
       case 'm':
@@ -188,7 +135,7 @@ const App = () => {
     }
   };
 
-  document.body.onkeyup = function (evt) {
+  document.body.onkeyup = (evt) => {
     pressed[evt.key] = false;
     if (menu.style.display !== 'none' || chat.chatting) return;
     switch (evt.key) {
@@ -257,9 +204,6 @@ const App = () => {
   }
   Entity.prototype.draw = tiles.drawEntity;
 
-  function clearSelect() {
-    selected.splice(0);
-  }
   const mapScrollX = 0;
   const mapScrollY = 0;
 
@@ -311,12 +255,13 @@ const App = () => {
 
         cvgInterface.draw();
         clientLoad += Math.round((Date.now() - then) / 0.3);
-        cvgInterface.setLoad(serverLoad, clientLoad);
+        cvgInterface.setLoad(serverLoad, prevClientLoad);
       });
     }
   }
 
   let map;
+  let canForm;
 
   function getXYV2(x, y) {
     return getXY(
@@ -328,6 +273,7 @@ const App = () => {
     can.width--; // somehow this functions make rendering on canvas few times faster
     can.width++;
     map = new Chunks(getXY, tiles.tiles);
+    canForm = createCanForm(map);
     for (let i = 0; i < 10; i++) {
       let done = false;
       do {
@@ -414,13 +360,13 @@ const App = () => {
   socket.on('map', (evt) => {
     camera.clearClip();
     map.data.chunks = evt.m.c;
-    for (const xy in map.data.chunks) {
+    map.data.chunks.forEach((c, xy) => {
       const cordsNormal = xy.split(',');
       const cords = cordsNormal.map((a) => a << 10);
       map.prerenderChunk(evt.m.c[xy], cordsNormal[0], cordsNormal[1]);
       camera.clip(cords[0], cords[1]);
       camera.clip(cords[0] + 1024, cords[1] + 1024);
-    }
+    });
 
     teams.splice(0);
     evt.t.forEach((t) => {
@@ -429,10 +375,9 @@ const App = () => {
       t.img = tiles.prepareDroidTiles(t.r, t.g, t.b);
       teams.push(t);
     });
-    serverConfig = evt.config;
-    tiles.setSafeRadius(serverConfig.safeRadius);
-    droids = [];
-    for (var i = 0; i < evt.m.d.length; i++) {
+    tiles.setSafeRadius(evt.config.safeRadius);
+    droids.splice(0);
+    for (let i = 0; i < evt.m.d.length; i++) {
       const d = evt.m.d[i];
       if (d) {
         droids[d.id] = d;
@@ -440,7 +385,7 @@ const App = () => {
       }
     }
     chat.clear();
-    for (var i = 0; i < evt.c.length; i++) {
+    for (let i = 0; i < evt.c.length; i++) {
       chat.receive(evt.c[i]);
     }
     myTeam = evt.i;
@@ -638,10 +583,11 @@ const App = () => {
       } else { // in CVGInterface
         const id = Math.ceil((320 - evt.pageY) / 32);
         if (evt.ctrlKey) { // select only the clicked one
-          selected = [selected[id]];
+          const tmp = selected[id];
+          droidManager.clearSelection();
+          selected.push(tmp);
         } else if (evt.shiftKey) { // deselect clicked one
-          selected[id] = null;
-          selected = selected.filter((a) => { if (a !== null) return a; });
+          selected.splice(id, 1);
         } else {
           const tmp = selected[id];
           if (typeof selected[id] === 'number') {
@@ -652,7 +598,7 @@ const App = () => {
         }
       }
     };
-    can.onmouseup = function (evt) {
+    can.onmouseup = (evt) => {
       if (marking) {
         const emx = evt.pageX + camera.x;
         const emy = evt.pageY + camera.y;
@@ -668,12 +614,9 @@ const App = () => {
                 if (u && (u.team === myTeam)) {
                   if (evt.ctrlKey && selected.indexOf(u.id) !== -1) {
                     const id = selected.indexOf(u.id);
-                    selected[id] = null;
-                    selected = selected.filter((a) => {
-                      if (a !== null) return a;
-                    });
+                    selected.splice(id, 1);
                   } else {
-                    if (!evt.ctrlKey) clearSelect();
+                    if (!evt.ctrlKey) droidManager.clearSelection();
                     if (selected.indexOf(u.id) === -1) selected.push(u.id);
                   }
                 } else {
@@ -749,7 +692,7 @@ const App = () => {
             const ey = Math.max(tmy, tey);
             const sx = Math.min(tmx, tex);
             const sy = Math.min(tmy, tey);
-            if (!evt.ctrlKey)clearSelect();
+            if (!evt.ctrlKey) droidManager.clearSelection();
             for (let i = sx; i <= ex; i++) {
               for (let j = sy; j <= ey; j++) {
                 const { u } = map.getBlock(i, j);
@@ -765,9 +708,8 @@ const App = () => {
       mapDragging = false;
       cvgInterface.setMapDragging(mapDragging);
     };
-    can.onmousemove = function (evt) {
-      const actionAllowed = false;
-      if (!evt) return false;
+    can.onmousemove = (evt) => {
+      if (!evt) return;
       if ((evt.pageX > 40) || (evt.pageY > 352)) { // out of CVGInterface
         mx = evt.pageX + camera.x;
         my = evt.pageY + camera.y;
@@ -837,7 +779,7 @@ const App = () => {
     clearInterval(loop);
     menuOn = true;
     cvgInterface.removeButton('Register');
-    clearSelect();
+    droidManager.clearSelection();
     can.style.filter = 'blur(2px)';
     chat.off();
     highscores.off();
