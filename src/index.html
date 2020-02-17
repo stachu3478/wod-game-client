@@ -1,106 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<title>
-			World of droids online
-		</title>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, maximum-scale=1">
-		<link rel="stylesheet" href="styles/style.css">
-		<link rel="stylesheet" media="screen and (min-width: 15cm) and (min-height: 15cm)" href="styles/style-desktop.css">
-		<link rel="stylesheet" media="screen and (max-width: 15cm), (max-height: 15cm)" href="styles/style-mobile.css">
-	</head>
-	<body>
-		<canvas></canvas>
 
-		<section class="side">
-			<div class="highscores"></div>
-			<div id="chat" class="hidden">
-				<div class="messages">
-					<ul class="msgs scrollable">
+<head>
+	<title>
+		World of droids online
+	</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, maximum-scale=1">
+	<link rel="stylesheet" href="styles/style.css">
+	<link rel="stylesheet" media="screen and (min-width: 15cm) and (min-height: 15cm)" href="styles/style-desktop.css">
+	<link rel="stylesheet" media="screen and (max-width: 15cm), (max-height: 15cm)" href="styles/style-mobile.css">
+</head>
 
-					</ul>
-					<div class="scrollbar">
-						<div class="scrollbar-handle"></div>
-					</div>
+<body>
+	<canvas id="main-game-canvas"></canvas>
+
+	<section class="side">
+		<div class="highscores"></div>
+		<div id="chat" class="hidden">
+			<div class="messages">
+				<ul class="msgs scrollable">
+
+				</ul>
+				<div class="scrollbar">
+					<div class="scrollbar-handle"></div>
 				</div>
-				<label for="chat_input">
-					<input id="chat_input" type="text" placeholder="Press 't' to chat..." spellcheck="false">
-				</label>
 			</div>
-			<aside class="warning" hidden>
-				<div>
-					<img src="tiles/radiation.svg" alt="">
-					<span></span>
-					<img src="tiles/radiation.svg" alt="">
-				</div>
-			</aside>
-		</section>
+			<label for="chat_input">
+				<input id="chat_input" type="text" placeholder="Press 't' to chat..." spellcheck="false">
+			</label>
+		</div>
+		<aside class="warning" hidden>
+			<div>
+				<img src="tiles/radiation.svg" alt="">
+				<span></span>
+				<img src="tiles/radiation.svg" alt="">
+			</div>
+		</aside>
+	</section>
 
-		<section id="overlay">
-			<header>
-				<a rel="noopener noreferer" target="blank" href="https://github.com/stachu3478/wod-game-client">View code on GitHub</a>
-				<a rel="noopener noreferer" target="blank" href="https://github.com/stachu3478/wod-game-client/issues">Report a bug</a>
-			</header>
-			<main>
-				<noscript>
-					<h1>
-						Enable javascript in your browser in order your game to work!
-					</h1>
-				</noscript>
+	<section id="overlay">
+		<header>
+			<a rel="noopener noreferer" target="blank" href="https://github.com/stachu3478/wod-game-client">View code on
+				GitHub</a>
+			<a rel="noopener noreferer" target="blank" href="https://github.com/stachu3478/wod-game-client/issues">Report a
+				bug</a>
+		</header>
+		<main>
+			<noscript>
+				<h1>
+					Enable javascript in your browser in order your game to work!
+				</h1>
+			</noscript>
 
-				<div id="login" class="container">
-					<label class="top-label" for="username">
-						<input type="text" placeholder="Nickname..." id="username">
-						<button class="left-thick">Play</button>
-						<button class="login-button">Login</button>
+			<div id="login" class="container">
+				<label class="top-label" for="username">
+					<input type="text" placeholder="Nickname..." id="username">
+					<button class="left-thick">Play</button>
+					<button class="login-button">Login</button>
+				</label>
+				<input class="hidden" type="password" placeholder="Password" id="password">
+				<h6 id="noticeArea"></h6>
+				<section>
+					<h4>Settings</h4>
+					<label for="chat-on">
+						<input type="checkbox" id="chat-on" checked>Chat
+						<input type="checkbox" id="hi-scores-on" checked>Highscores
 					</label>
-					<input class="hidden" type="password" placeholder="Password" id="password">
-					<h6 id="noticeArea"></h6>
-					<section>
-						<h4>Settings</h4>
-						<label for="chat-on">
-							<input type="checkbox" id="chat-on" checked>Chat
-							<input type="checkbox" id="hi-scores-on" checked>Highscores
-						</label>
-					</section>
-				</div>
+				</section>
+			</div>
 
-				<div id="register" class="container hidden" hidden>
-					<h3>Register</h3>
-					<span>Keep your army when disconnected, gain XP, no unit limit.</span><br>
-					<input type="text" placeholder="Nickname..." id="username_reg"><br>
-					<input type="password" placeholder="Password" id="password_reg1"><br>
-					<input type="password" placeholder="Confirm password" id="password_reg2"><br>
-					<input type="text" placeholder="E-mail" id="email"><br>
-					<label>
-							<input type="checkbox" id="agree"><a>Terms of use (currently none)</a><br>
-					</label>
-					<button id="regbtn" disabled>Register</button>
-					<button id="backregbtn">Back</button>
-					<h6 id="rnoticeArea"></h6><br>
-				</div>
+			<div id="register" class="container hidden" hidden>
+				<h3>Register</h3>
+				<span>Keep your army when disconnected, gain XP, no unit limit.</span><br>
+				<input type="text" placeholder="Nickname..." id="username_reg"><br>
+				<input type="password" placeholder="Password" id="password_reg1"><br>
+				<input type="password" placeholder="Confirm password" id="password_reg2"><br>
+				<input type="text" placeholder="E-mail" id="email"><br>
+				<label>
+					<input type="checkbox" id="agree"><a>Terms of use (currently none)</a><br>
+				</label>
+				<button id="regbtn" disabled>Register</button>
+				<button id="backregbtn">Back</button>
+				<h6 id="rnoticeArea"></h6><br>
+			</div>
 
-				<div id="user" class="container hidden">
-					Logged in: <span></span><br>
-					XP:<div></div><br>
-					<button>Play</button>
-					<button>Logout</button>
-				</div>
+			<div id="user" class="container hidden">
+				Logged in: <span></span><br>
+				XP:<div></div><br>
+				<button>Play</button>
+				<button>Logout</button>
+			</div>
 
-				<div class="secondary-window container">
+			<div class="secondary-window container">
 
-				</div>
-			</main>
-			<footer>
-				<div>
-					World of Droids Alpha 1.0 (Client build 1)
-				</div>
-				<div>
-					Made by &copy; stachu3478.
-				</div>
-			</footer>
-		</section>
+			</div>
+		</main>
+		<footer>
+			<div>
+				World of Droids Alpha 1.0 (Client build 1)
+			</div>
+			<div>
+				Made by &copy; stachu3478.
+			</div>
+		</footer>
+	</section>
 
-	</body>
+</body>
+
 </html>

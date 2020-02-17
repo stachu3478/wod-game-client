@@ -16,6 +16,7 @@ module.exports = {
   },
   resolve: {
     extensions: ['.ts', '.js'],
+    modules: ['node_modules', './src'],
   },
   optimization: {
     splitChunks: {

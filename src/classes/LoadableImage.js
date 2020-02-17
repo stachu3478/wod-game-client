@@ -6,46 +6,46 @@ let loading = 0;
 let maxLoading = 0;
 let fetching = false;
 let resolveFunc = () => {
-    console.log('Invalid function')
-}
-function incl () {
-    if(++loading === maxLoading && fetching) {
-        resolveFunc()
-        console.log('Done loading')
-    }
+  console.log('Invalid function');
+};
+function incl() {
+  if (++loading === maxLoading && fetching) {
+    resolveFunc();
+    console.log('Done loading');
+  }
 }
 
 class LoadableImage {
-    constructor(src) {
-        let img = new Image();
-        img.onload = incl;
-        img.src = src;
-        maxLoading++;
-        return img;
-    }
+  constructor(src) {
+    const img = new Image();
+    img.onload = incl;
+    img.src = src;
+    maxLoading++;
+    return img;
+  }
 
-    incl () {
-        if(++loading === maxLoading) {
-            init();
-            let interVal = setInterval(function() {
-                if (preinit) {
-                    preinit();
-                    clearInterval(interVal);
-                }
-            }, 100);
+  incl() {
+    if (++loading === maxLoading) {
+      init();
+      const interVal = setInterval(() => {
+        if (preinit) {
+          preinit();
+          clearInterval(interVal);
         }
+      }, 100);
     }
+  }
 
-    resolve () {}
+  resolve() {}
 
-    static fetch () {
-        fetching = true;
-        return new Promise((resolve) => {
-            if (loading === maxLoading) {
-                resolve();
-            } else resolveFunc = resolve;
-        })
-    }
+  static fetch() {
+    fetching = true;
+    return new Promise((resolve) => {
+      if (loading === maxLoading) {
+        resolve();
+      } else resolveFunc = resolve;
+    });
+  }
 }
 
-export default LoadableImage
+export default LoadableImage;

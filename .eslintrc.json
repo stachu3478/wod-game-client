@@ -18,5 +18,17 @@
         "linebreak-style": "off",
         "no-bitwise": "off",
         "no-plusplus": "off"
+    },
+    "plugins": [
+        "eslint-plugin-import"
+    ],
+    "settings": {
+        "import/resolver": {
+            "node": {
+                "paths": [
+                    "./src"
+                ]
+            }
+        }
     }
 }

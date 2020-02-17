@@ -4,7 +4,7 @@
   "description": "The World of Droids game client, static hosted",
   "license": "MIT",
   "dependencies": {
-    "http-server": "^0.11.1",
+    "http-server": "^0.12.1",
     "socket.io-client": "latest"
   },
   "engines": {
